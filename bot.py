@@ -1,7 +1,8 @@
+import os
 import telebot
 from telebot import types
 
-TOKEN = "TOKEN"
+TOKEN = os.getenv("TOKEN")  # токен берётся из Railway
 
 bot = telebot.TeleBot(TOKEN)
 bot.delete_webhook()
