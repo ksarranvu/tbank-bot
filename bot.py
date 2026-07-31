@@ -2,7 +2,7 @@ import os
 import telebot
 from telebot import types
 
-TOKEN = os.getenv("TOKEN")
+TOKEN = os.getenv("8710832670:AAEjPvRO0_ETb5pXCjRDFPw5SeGgbbU-fYg")
 
 bot = telebot.TeleBot(TOKEN)
 bot.delete_webhook()
