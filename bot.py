@@ -13,8 +13,8 @@ LINK_BUSINESS = "https://tbank.ru/baf/4fWsjkGRCpn"
 LINK_INVEST = "https://tbank.ru/baf/4Nha2vM22nm"
 LINK_ALL = "https://tbank.ru/baf/58KGejb8KDQ"
 
-# Картинка
-PHOTO_URL = "https://i.imgur.com/U9CZY8P.png"
+# Картинка из GitHub (raw)
+PHOTO_URL = "https://raw.githubusercontent.com/ksarranvu/tbank-bot/main/welcome.png"
 
 def main_keyboard():
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True, row_width=1)
@@ -33,14 +33,17 @@ def start(message):
         "Здесь можно быстро оформить выгодные продукты Т-Банка.\n\n"
         "Выбирай, что тебе интересно 👇"
     )
-    # Отправляем картинку + текст
-    bot.send_photo(
-        message.chat.id,
-        PHOTO_URL,
-        caption=text,
-        reply_markup=main_keyboard(),
-        parse_mode="HTML"
-    )
+    try:
+        bot.send_photo(
+            message.chat.id,
+            PHOTO_URL,
+            caption=text,
+            reply_markup=main_keyboard(),
+            parse_mode="HTML"
+        )
+    except:
+        # Если картинка не загрузится — просто текст
+        bot.send_message(message.chat.id, text, reply_markup=main_keyboard(), parse_mode="HTML")
 
 @bot.message_handler(func=lambda message: True)
 def handle(message):
