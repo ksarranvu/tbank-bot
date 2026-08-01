@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <title>Т-Банк — Выгодные продукты</title>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: #0f0f0f;
+      color: #ffffff;
+      min-height: 100vh;
+      padding: 20px 16px 40px;
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 28px;
+      padding-top: 10px;
+    }
+
+    .logo {
+      width: 64px;
+      height: 64px;
+      background: #FFDD2D;
+      border-radius: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 16px;
+      font-size: 32px;
+      font-weight: 700;
+      color: #000;
+      box-shadow: 0 0 30px rgba(255, 221, 45, 0.4);
+    }
+
+    .header h1 {
+      font-size: 22px;
+      font-weight: 700;
+      margin-bottom: 6px;
+    }
+
+    .header p {
+      color: #aaaaaa;
+      font-size: 14px;
+    }
+
+    .cards {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      max-width: 480px;
+      margin: 0 auto;
+    }
+
+    .card {
+      background: #1a1a1a;
+      border-radius: 20px;
+      padding: 20px;
+      border: 1px solid #2a2a2a;
+      transition: 0.2s;
+    }
+
+    .card:active {
+      transform: scale(0.98);
+    }
+
+    .card-title {
+      font-size: 17px;
+      font-weight: 600;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .card-desc {
+      color: #999;
+      font-size: 13px;
+      line-height: 1.45;
+      margin-bottom: 16px;
+    }
+
+    .card-desc li {
+      margin-bottom: 4px;
+      list-style: none;
+    }
+
+    .card-desc li::before {
+      content: "• ";
+      color: #FFDD2D;
+    }
+
+    .btn {
+      display: block;
+      width: 100%;
+      background: #FFDD2D;
+      color: #000;
+      border: none;
+      border-radius: 14px;
+      padding: 14px;
+      font-size: 15px;
+      font-weight: 600;
+      text-align: center;
+      text-decoration: none;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+
+    .btn:active {
+      background: #e6c625;
+    }
+
+    .warning {
+      margin-top: 24px;
+      background: #1f1a0a;
+      border: 1px solid #3d3200;
+      border-radius: 16px;
+      padding: 16px;
+      font-size: 13px;
+      color: #e0c96a;
+      line-height: 1.5;
+      max-width: 480px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .footer {
+      text-align: center;
+      margin-top: 30px;
+      color: #555;
+      font-size: 12px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="header">
+    <div class="logo">T</div>
+    <h1>Выгодные продукты Т-Банка</h1>
+    <p>Оформление онлайн • Бонусы • Быстро</p>
+  </div>
+
+  <div class="cards">
+
+    <!-- Карта Black -->
+    <div class="card">
+      <div class="card-title">💳 Карта Black + 500 ₽</div>
+      <ul class="card-desc">
+        <li>500 ₽ в подарок</li>
+        <li>Кэшбэк до 30%</li>
+        <li>Часто бесплатное обслуживание</li>
+        <li>Доставка карты домой</li>
+      </ul>
+      <a class="btn" href="https://tbank.ru/baf/6cDotN3sm66" target="_blank">Оформить карту</a>
+    </div>
+
+    <!-- Бизнес-счёт -->
+    <div class="card">
+      <div class="card-title">💼 Бизнес-счёт</div>
+      <ul class="card-desc">
+        <li>Открытие за несколько минут</li>
+        <li>Удобное приложение</li>
+        <li>Бесплатные переводы</li>
+        <li>Для ИП и ООО</li>
+      </ul>
+      <a class="btn" href="https://tbank.ru/baf/4fWsjkGRCpn" target="_blank">Открыть счёт</a>
+    </div>
+
+    <!-- Инвестиции -->
+    <div class="card">
+      <div class="card-title">📈 Счёт для инвестиций</div>
+      <ul class="card-desc">
+        <li>Акции, облигации, ETF</li>
+        <li>Можно начать с небольшой суммы</li>
+        <li>Удобное приложение</li>
+        <li>Низкие комиссии</li>
+      </ul>
+      <a class="btn" href="https://tbank.ru/baf/4Nha2vM22nm" target="_blank">Открыть счёт</a>
+    </div>
+
+    <!-- Все продукты -->
+    <div class="card">
+      <div class="card-title">🔍 Выбери продукт сам</div>
+      <ul class="card-desc">
+        <li>Все продукты Т-Банка в одном месте</li>
+        <li>Карты, счета, инвестиции</li>
+      </ul>
+      <a class="btn" href="https://tbank.ru/baf/58KGejb8KDQ" target="_blank">Выбрать продукт</a>
+    </div>
+
+  </div>
+
+  <div class="warning">
+    ⚠️ <b>Важно:</b> Чтобы получить бонус, оформляй продукт по ссылке и выполни условия акции (обычно покупка или пополнение).
+  </div>
+
+  <div class="footer">
+    Т-Банк • Официальные ссылки
+  </div>
+
+  <script>
+    // Адаптация под тему Telegram
+    const tg = window.Telegram.WebApp;
+    tg.ready();
+    tg.expand();
+
+    // Можно менять цвет шапки
+    tg.setHeaderColor('#0f0f0f');
+    tg.setBackgroundColor('#0f0f0f');
+  </script>
+</body>
+</html>
