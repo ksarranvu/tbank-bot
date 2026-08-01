@@ -151,7 +151,24 @@ def start(message):
     )
     bot.send_message(message.chat.id, text, reply_markup=main_keyboard(), parse_mode="HTML")
 
-# ================= АДМИН-КОМАНДЫ =================
+# ================= АДМИН КОМАНДЫ =================
+@bot.message_handler(commands=['stats'])
+def stats(message):
+    if message.from_user.id != ADMIN_ID:
+        return
+    
+    users = get_all_users_stats()
+    total = len(users)
+    
+    text = (
+        f"📊 <b>Общая статистика</b>\n\n"
+        f"👥 Всего пользователей: <b>{total}</b>\n\n"
+        f"Команды:\n"
+        f"/users — список всех людей\n"
+        f"/user ID — статистика по человеку"
+    )
+    bot.send_message(message.chat.id, text, parse_mode="HTML")
+
 @bot.message_handler(commands=['users'])
 def users_list(message):
     if message.from_user.id != ADMIN_ID:
@@ -166,10 +183,12 @@ def users_list(message):
     text = "👥 <b>Список людей:</b>\n\n"
     
     for u in users:
+        clicks = u['clicks']
         text += f"👤 <b>{u['full_name']}</b>\n"
         text += f"ID: <code>{u['user_id']}</code>\n"
         text += f"@{u['username']}\n"
         text += f"Последний раз: {u['last_seen']}\n"
+        text += f"Нажатия: start {clicks.get('start', 0)} | black {clicks.get('black', 0)} | business {clicks.get('business', 0)} | invest {clicks.get('invest', 0)}\n"
         text += "————————————\n"
         
         if len(text) > 3500:
