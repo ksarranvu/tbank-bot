@@ -2,11 +2,11 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
   <title>Т-Банк — Выгодные продукты</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
     * {
       margin: 0;
@@ -15,288 +15,208 @@
     }
 
     body {
-      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-      background: #0c0c0c;
+      font-family: 'Inter', sans-serif;
+      background: #0f0f0f;
       color: #ffffff;
       min-height: 100vh;
-      padding: 16px 14px 50px;
-      -webkit-font-smoothing: antialiased;
+      padding: 20px 16px 40px;
     }
 
-    .container {
-      max-width: 440px;
-      margin: 0 auto;
-    }
-
-    /* ===== HEADER ===== */
     .header {
       text-align: center;
-      padding: 12px 0 24px;
+      margin-bottom: 28px;
+      padding-top: 10px;
     }
 
     .logo {
-      width: 80px;
-      height: 88px;
-      margin: 0 auto 18px;
+      width: 64px;
+      height: 64px;
+      background: #FFDD2D;
+      border-radius: 16px;
       display: flex;
       align-items: center;
       justify-content: center;
+      margin: 0 auto 16px;
+      font-size: 32px;
+      font-weight: 700;
+      color: #000;
+      box-shadow: 0 0 30px rgba(255, 221, 45, 0.4);
     }
 
     .header h1 {
-      font-size: 23px;
-      font-weight: 800;
-      letter-spacing: -0.3px;
+      font-size: 22px;
+      font-weight: 700;
       margin-bottom: 6px;
     }
 
     .header p {
-      color: #a0a0a0;
+      color: #aaaaaa;
       font-size: 14px;
-      font-weight: 500;
     }
 
-    .badge {
-      display: inline-block;
-      background: rgba(255, 221, 45, 0.15);
-      color: #FFDD2D;
-      font-size: 12px;
-      font-weight: 600;
-      padding: 5px 12px;
-      border-radius: 20px;
-      margin-top: 12px;
-    }
-
-    /* ===== CARDS ===== */
     .cards {
       display: flex;
       flex-direction: column;
-      gap: 12px;
+      gap: 14px;
+      max-width: 480px;
+      margin: 0 auto;
     }
 
     .card {
-      background: linear-gradient(145deg, #1a1a1a, #141414);
-      border-radius: 22px;
-      padding: 18px;
+      background: #1a1a1a;
+      border-radius: 20px;
+      padding: 20px;
       border: 1px solid #2a2a2a;
-      position: relative;
-      overflow: hidden;
+      transition: 0.2s;
     }
 
-    .card::before {
-      content: "";
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      height: 1px;
-      background: linear-gradient(90deg, transparent, rgba(255,221,45,0.3), transparent);
-    }
-
-    .card-top {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      margin-bottom: 12px;
-    }
-
-    .card-icon {
-      font-size: 22px;
+    .card:active {
+      transform: scale(0.98);
     }
 
     .card-title {
-      font-size: 16.5px;
-      font-weight: 700;
+      font-size: 17px;
+      font-weight: 600;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
     }
 
-    .card-list {
-      list-style: none;
+    .card-desc {
+      color: #999;
+      font-size: 13px;
+      line-height: 1.45;
       margin-bottom: 16px;
     }
 
-    .card-list li {
-      font-size: 13.5px;
-      color: #b0b0b0;
-      margin-bottom: 5px;
-      padding-left: 14px;
-      position: relative;
-      line-height: 1.4;
+    .card-desc li {
+      margin-bottom: 4px;
+      list-style: none;
     }
 
-    .card-list li::before {
-      content: "✓";
-      position: absolute;
-      left: 0;
+    .card-desc li::before {
+      content: "• ";
       color: #FFDD2D;
-      font-weight: 700;
-      font-size: 12px;
     }
 
     .btn {
       display: block;
       width: 100%;
       background: #FFDD2D;
-      color: #111;
+      color: #000;
       border: none;
       border-radius: 14px;
-      padding: 15px;
+      padding: 14px;
       font-size: 15px;
-      font-weight: 700;
+      font-weight: 600;
       text-align: center;
       text-decoration: none;
-      transition: 0.15s;
-      box-shadow: 0 4px 15px rgba(255, 221, 45, 0.25);
+      cursor: pointer;
+      transition: 0.2s;
     }
 
     .btn:active {
-      transform: scale(0.97);
-      background: #f0d020;
+      background: #e6c625;
     }
 
-    /* ===== WARNING ===== */
     .warning {
-      margin-top: 20px;
-      background: #1a1608;
+      margin-top: 24px;
+      background: #1f1a0a;
       border: 1px solid #3d3200;
       border-radius: 16px;
-      padding: 14px 16px;
+      padding: 16px;
       font-size: 13px;
-      color: #e8d48b;
+      color: #e0c96a;
       line-height: 1.5;
+      max-width: 480px;
+      margin-left: auto;
+      margin-right: auto;
     }
 
-    .warning b {
-      color: #FFDD2D;
-    }
-
-    /* ===== FOOTER ===== */
     .footer {
       text-align: center;
-      margin-top: 28px;
+      margin-top: 30px;
       color: #555;
       font-size: 12px;
     }
   </style>
 </head>
 <body>
-  <div class="container">
 
-    <!-- HEADER -->
-    <div class="header">
-      <div class="logo">
-        <!-- Официальный логотип Т-Банка -->
-        <svg width="80" height="88" viewBox="0 0 100 110" xmlns="http://www.w3.org/2000/svg">
-          <defs>
-            <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
-              <feDropShadow dx="0" dy="4" stdDeviation="6" flood-color="#FFDD2D" flood-opacity="0.45"/>
-            </filter>
-          </defs>
-          
-          <!-- Жёлтый щит (официальный цвет #FFDD2D) -->
-          <path d="M50 6
-                   L94 25
-                   L94 72
-                   C94 92 72 106 50 106
-                   C28 106 6 92 6 72
-                   L6 25 Z" 
-                fill="#FFDD2D" 
-                filter="url(#shadow)"/>
-          
-          <!-- Чёрная буква T -->
-          <text x="50" y="76" 
-                font-family="Arial Black, Helvetica, sans-serif" 
-                font-size="56" 
-                font-weight="900" 
-                fill="#111111" 
-                text-anchor="middle"
-                letter-spacing="-1">T</text>
-        </svg>
-      </div>
-      <h1>Выгодные продукты Т-Банка</h1>
-      <p>Оформление онлайн • Бонусы • Быстро</p>
-      <div class="badge">🔥 Актуальные предложения</div>
+  <div class="header">
+    <div class="logo">T</div>
+    <h1>Выгодные продукты Т-Банка</h1>
+    <p>Оформление онлайн • Бонусы • Быстро</p>
+  </div>
+
+  <div class="cards">
+
+    <!-- Карта Black -->
+    <div class="card">
+      <div class="card-title">💳 Карта Black + 500 ₽</div>
+      <ul class="card-desc">
+        <li>500 ₽ в подарок</li>
+        <li>Кэшбэк до 30%</li>
+        <li>Часто бесплатное обслуживание</li>
+        <li>Доставка карты домой</li>
+      </ul>
+      <a class="btn" href="https://tbank.ru/baf/6cDotN3sm66" target="_blank">Оформить карту</a>
     </div>
 
-    <!-- CARDS -->
-    <div class="cards">
-
-      <!-- Карта Black -->
-      <div class="card">
-        <div class="card-top">
-          <div class="card-icon">💳</div>
-          <div class="card-title">Карта Black + 500 ₽</div>
-        </div>
-        <ul class="card-list">
-          <li>500 ₽ сразу на карту</li>
-          <li>Кэшбэк до 30%</li>
-          <li>Часто обслуживание 0 ₽</li>
-          <li>Бесплатная доставка</li>
-        </ul>
-        <a class="btn" href="https://tbank.ru/baf/6cDotN3sm66" target="_blank">Оформить карту + 500 ₽</a>
-      </div>
-
-      <!-- Бизнес-счёт -->
-      <div class="card">
-        <div class="card-top">
-          <div class="card-icon">💼</div>
-          <div class="card-title">Бизнес-счёт</div>
-        </div>
-        <ul class="card-list">
-          <li>Открытие за несколько минут</li>
-          <li>Удобное приложение</li>
-          <li>Бесплатные переводы</li>
-          <li>Для ИП и ООО</li>
-        </ul>
-        <a class="btn" href="https://tbank.ru/baf/4fWsjkGRCpn" target="_blank">Открыть бизнес-счёт</a>
-      </div>
-
-      <!-- Инвестиции -->
-      <div class="card">
-        <div class="card-top">
-          <div class="card-icon">📈</div>
-          <div class="card-title">Счёт для инвестиций</div>
-        </div>
-        <ul class="card-list">
-          <li>Акции, облигации, ETF</li>
-          <li>Можно начать с небольшой суммы</li>
-          <li>Удобное приложение</li>
-          <li>Низкие комиссии</li>
-        </ul>
-        <a class="btn" href="https://tbank.ru/baf/4Nha2vM22nm" target="_blank">Открыть инвестиционный счёт</a>
-      </div>
-
-      <!-- Все продукты -->
-      <div class="card">
-        <div class="card-top">
-          <div class="card-icon">🔍</div>
-          <div class="card-title">Выбери продукт сам</div>
-        </div>
-        <ul class="card-list">
-          <li>Все продукты Т-Банка</li>
-          <li>Карты, счета, инвестиции</li>
-        </ul>
-        <a class="btn" href="https://tbank.ru/baf/58KGejb8KDQ" target="_blank">Выбрать продукт</a>
-      </div>
-
+    <!-- Бизнес-счёт -->
+    <div class="card">
+      <div class="card-title">💼 Бизнес-счёт</div>
+      <ul class="card-desc">
+        <li>Открытие за несколько минут</li>
+        <li>Удобное приложение</li>
+        <li>Бесплатные переводы</li>
+        <li>Для ИП и ООО</li>
+      </ul>
+      <a class="btn" href="https://tbank.ru/baf/4fWsjkGRCpn" target="_blank">Открыть счёт</a>
     </div>
 
-    <!-- WARNING -->
-    <div class="warning">
-      <b>⚠️ Важно:</b> Чтобы получить бонус, оформляй продукт именно по ссылке и выполни условия акции (обычно покупка или пополнение).
+    <!-- Инвестиции -->
+    <div class="card">
+      <div class="card-title">📈 Счёт для инвестиций</div>
+      <ul class="card-desc">
+        <li>Акции, облигации, ETF</li>
+        <li>Можно начать с небольшой суммы</li>
+        <li>Удобное приложение</li>
+        <li>Низкие комиссии</li>
+      </ul>
+      <a class="btn" href="https://tbank.ru/baf/4Nha2vM22nm" target="_blank">Открыть счёт</a>
     </div>
 
-    <div class="footer">
-      Официальные ссылки Т-Банка
+    <!-- Все продукты -->
+    <div class="card">
+      <div class="card-title">🔍 Выбери продукт сам</div>
+      <ul class="card-desc">
+        <li>Все продукты Т-Банка в одном месте</li>
+        <li>Карты, счета, инвестиции</li>
+      </ul>
+      <a class="btn" href="https://tbank.ru/baf/58KGejb8KDQ" target="_blank">Выбрать продукт</a>
     </div>
 
   </div>
 
+  <div class="warning">
+    ⚠️ <b>Важно:</b> Чтобы получить бонус, оформляй продукт по ссылке и выполни условия акции (обычно покупка или пополнение).
+  </div>
+
+  <div class="footer">
+    Т-Банк • Официальные ссылки
+  </div>
+
   <script>
+    // Адаптация под тему Telegram
     const tg = window.Telegram.WebApp;
     tg.ready();
     tg.expand();
-    tg.setHeaderColor('#0c0c0c');
-    tg.setBackgroundColor('#0c0c0c');
+
+    // Можно менять цвет шапки
+    tg.setHeaderColor('#0f0f0f');
+    tg.setBackgroundColor('#0f0f0f');
   </script>
 </body>
 </html>
