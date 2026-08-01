@@ -135,6 +135,7 @@ def main_keyboard():
     markup.add(types.KeyboardButton("🔍 Выбери продукт сам"))
     markup.add(types.KeyboardButton("📋 Подробнее о продуктах"))
     markup.add(types.KeyboardButton("🔥 Почему это выгодно"))
+    markup.add(types.KeyboardButton("⚠️ Важно"))
     return markup
 
 # ================= START =================
@@ -150,7 +151,24 @@ def start(message):
     )
     bot.send_message(message.chat.id, text, reply_markup=main_keyboard(), parse_mode="HTML")
 
-# ================= СПИСОК ВСЕХ =================
+# ================= АДМИН КОМАНДЫ =================
+@bot.message_handler(commands=['stats'])
+def stats(message):
+    if message.from_user.id != ADMIN_ID:
+        return
+    
+    users = get_all_users_stats()
+    total = len(users)
+    
+    text = (
+        f"📊 <b>Общая статистика</b>\n\n"
+        f"👥 Всего пользователей: <b>{total}</b>\n\n"
+        f"Команды:\n"
+        f"/users — список всех людей\n"
+        f"/user ID — статистика по человеку"
+    )
+    bot.send_message(message.chat.id, text, parse_mode="HTML")
+
 @bot.message_handler(commands=['users'])
 def users_list(message):
     if message.from_user.id != ADMIN_ID:
@@ -165,10 +183,12 @@ def users_list(message):
     text = "👥 <b>Список людей:</b>\n\n"
     
     for u in users:
+        clicks = u['clicks']
         text += f"👤 <b>{u['full_name']}</b>\n"
         text += f"ID: <code>{u['user_id']}</code>\n"
         text += f"@{u['username']}\n"
         text += f"Последний раз: {u['last_seen']}\n"
+        text += f"Нажатия: start {clicks.get('start', 0)} | black {clicks.get('black', 0)} | business {clicks.get('business', 0)} | invest {clicks.get('invest', 0)}\n"
         text += "————————————\n"
         
         if len(text) > 3500:
@@ -178,7 +198,6 @@ def users_list(message):
     if text:
         bot.send_message(message.chat.id, text, parse_mode="HTML")
 
-# ================= СТАТИСТИКА ПО ОДНОМУ ЧЕЛОВЕКУ =================
 @bot.message_handler(commands=['user'])
 def user_info(message):
     if message.from_user.id != ADMIN_ID:
@@ -211,7 +230,8 @@ def user_info(message):
         f"• Инвестиции — {clicks.get('invest', 0)}\n"
         f"• Выбери продукт — {clicks.get('all', 0)}\n"
         f"• Подробнее — {clicks.get('info', 0)}\n"
-        f"• Почему выгодно — {clicks.get('why', 0)}"
+        f"• Почему выгодно — {clicks.get('why', 0)}\n"
+        f"• Важно — {clicks.get('important', 0)}"
     )
     
     bot.send_message(message.chat.id, text, parse_mode="HTML")
@@ -288,6 +308,18 @@ def handle(message):
     elif "выгодно" in text:
         add_click(user_id, "why")
         bot.send_message(message.chat.id, "🔥 Всё оформляется онлайн, часто есть бонусы и удобные приложения.")
+
+    elif "важно" in text:
+        add_click(user_id, "important")
+        text_important = (
+            "⚠️ <b>Важно знать</b>\n\n"
+            "Чтобы получить бонус, нужно:\n\n"
+            "1. Оформить продукт <b>по ссылке из бота</b>\n"
+            "2. Выполнить условия акции (обычно покупка или пополнение)\n"
+            "3. Дождаться начисления бонуса\n\n"
+            "Если условия не выполнить — бонус может не прийти."
+        )
+        bot.send_message(message.chat.id, text_important, parse_mode="HTML")
 
     else:
         bot.send_message(message.chat.id, "Используй кнопки меню 👇", reply_markup=main_keyboard())
