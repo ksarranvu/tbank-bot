@@ -2,7 +2,7 @@ import os
 import telebot
 from telebot import types
 import sqlite3
-from datetime import datetime, date, timedelta
+from datetime import datetime
 
 TOKEN = os.getenv("TOKEN")
 bot = telebot.TeleBot(TOKEN)
@@ -14,6 +14,8 @@ LINK_BUSINESS = "https://tbank.ru/baf/4fWsjkGRCpn"
 LINK_INVEST = "https://tbank.ru/baf/4Nha2vM22nm"
 LINK_ALL = "https://tbank.ru/baf/58KGejb8KDQ"
 
+ADMIN_ID = 8896790430
+
 # ================= БАЗА ДАННЫХ =================
 def init_db():
     conn = sqlite3.connect("stats.db")
@@ -22,7 +24,10 @@ def init_db():
     cur.execute("""
         CREATE TABLE IF NOT EXISTS users (
             user_id INTEGER PRIMARY KEY,
-            first_seen TEXT
+            username TEXT,
+            full_name TEXT,
+            first_seen TEXT,
+            last_seen TEXT
         )
     """)
     
@@ -31,57 +36,93 @@ def init_db():
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             user_id INTEGER,
             button TEXT,
-            click_date TEXT
+            click_date TEXT,
+            click_time TEXT
         )
     """)
     
     conn.commit()
     conn.close()
 
-def add_user(user_id):
+def save_user(user):
     conn = sqlite3.connect("stats.db")
     cur = conn.cursor()
-    cur.execute("INSERT OR IGNORE INTO users (user_id, first_seen) VALUES (?, ?)",
-                (user_id, datetime.now().strftime("%Y-%m-%d %H:%M")))
+    
+    full_name = f"{user.first_name or ''} {user.last_name or ''}".strip()
+    username = user.username or "нет"
+    now = datetime.now().strftime("%Y-%m-%d %H:%M")
+    
+    cur.execute("""
+        INSERT INTO users (user_id, username, full_name, first_seen, last_seen)
+        VALUES (?, ?, ?, ?, ?)
+        ON CONFLICT(user_id) DO UPDATE SET
+            username = excluded.username,
+            full_name = excluded.full_name,
+            last_seen = excluded.last_seen
+    """, (user.id, username, full_name, now, now))
+    
     conn.commit()
     conn.close()
 
 def add_click(user_id, button):
     conn = sqlite3.connect("stats.db")
     cur = conn.cursor()
-    cur.execute("INSERT INTO clicks (user_id, button, click_date) VALUES (?, ?, ?)",
-                (user_id, button, date.today().isoformat()))
+    now = datetime.now()
+    cur.execute("""
+        INSERT INTO clicks (user_id, button, click_date, click_time)
+        VALUES (?, ?, ?, ?)
+    """, (user_id, button, now.strftime("%Y-%m-%d"), now.strftime("%H:%M:%S")))
     conn.commit()
     conn.close()
 
-def get_stats():
+def get_all_users_stats():
     conn = sqlite3.connect("stats.db")
     cur = conn.cursor()
     
-    cur.execute("SELECT COUNT(*) FROM users")
-    total_users = cur.fetchone()[0]
+    cur.execute("SELECT user_id, username, full_name, first_seen, last_seen FROM users ORDER BY last_seen DESC")
+    users = cur.fetchall()
     
-    today = date.today().isoformat()
-    cur.execute("SELECT COUNT(DISTINCT user_id) FROM clicks WHERE click_date = ?", (today,))
-    today_users = cur.fetchone()[0]
-    
-    cur.execute("SELECT button, COUNT(*) FROM clicks GROUP BY button")
-    all_clicks = dict(cur.fetchall())
-    
-    cur.execute("SELECT button, COUNT(*) FROM clicks WHERE click_date = ? GROUP BY button", (today,))
-    today_clicks = dict(cur.fetchall())
-    
-    last_7_days = []
-    for i in range(6, -1, -1):
-        day = (date.today() - timedelta(days=i)).isoformat()
-        cur.execute("SELECT COUNT(DISTINCT user_id) FROM clicks WHERE click_date = ?", (day,))
-        users_count = cur.fetchone()[0]
-        cur.execute("SELECT COUNT(*) FROM clicks WHERE click_date = ?", (day,))
-        clicks_count = cur.fetchone()[0]
-        last_7_days.append((day, users_count, clicks_count))
+    result = []
+    for user in users:
+        user_id, username, full_name, first_seen, last_seen = user
+        cur.execute("SELECT button, COUNT(*) FROM clicks WHERE user_id = ? GROUP BY button", (user_id,))
+        clicks = dict(cur.fetchall())
+        
+        result.append({
+            "user_id": user_id,
+            "username": username,
+            "full_name": full_name,
+            "first_seen": first_seen,
+            "last_seen": last_seen,
+            "clicks": clicks
+        })
     
     conn.close()
-    return total_users, today_users, all_clicks, today_clicks, last_7_days
+    return result
+
+def get_user_stats(user_id):
+    conn = sqlite3.connect("stats.db")
+    cur = conn.cursor()
+    
+    cur.execute("SELECT username, full_name, first_seen, last_seen FROM users WHERE user_id = ?", (user_id,))
+    user = cur.fetchone()
+    
+    if not user:
+        conn.close()
+        return None
+    
+    cur.execute("SELECT button, COUNT(*) FROM clicks WHERE user_id = ? GROUP BY button", (user_id,))
+    clicks = dict(cur.fetchall())
+    
+    conn.close()
+    return {
+        "user_id": user_id,
+        "username": user[0],
+        "full_name": user[1],
+        "first_seen": user[2],
+        "last_seen": user[3],
+        "clicks": clicks
+    }
 
 init_db()
 
@@ -99,7 +140,7 @@ def main_keyboard():
 # ================= START =================
 @bot.message_handler(commands=['start'])
 def start(message):
-    add_user(message.from_user.id)
+    save_user(message.from_user)
     add_click(message.from_user.id, "start")
     
     text = (
@@ -109,45 +150,76 @@ def start(message):
     )
     bot.send_message(message.chat.id, text, reply_markup=main_keyboard(), parse_mode="HTML")
 
-# ================= СТАТИСТИКА =================
-@bot.message_handler(commands=['stats'])
-def stats(message):
-    if message.from_user.id != 8896790430:
+# ================= СПИСОК ВСЕХ =================
+@bot.message_handler(commands=['users'])
+def users_list(message):
+    if message.from_user.id != ADMIN_ID:
         return
     
-    total_users, today_users, all_clicks, today_clicks, last_7_days = get_stats()
+    users = get_all_users_stats()
+    
+    if not users:
+        bot.send_message(message.chat.id, "Пока никто не заходил.")
+        return
+    
+    text = "👥 <b>Список людей:</b>\n\n"
+    
+    for u in users:
+        text += f"👤 <b>{u['full_name']}</b>\n"
+        text += f"ID: <code>{u['user_id']}</code>\n"
+        text += f"@{u['username']}\n"
+        text += f"Последний раз: {u['last_seen']}\n"
+        text += "————————————\n"
+        
+        if len(text) > 3500:
+            bot.send_message(message.chat.id, text, parse_mode="HTML")
+            text = ""
+    
+    if text:
+        bot.send_message(message.chat.id, text, parse_mode="HTML")
+
+# ================= СТАТИСТИКА ПО ОДНОМУ ЧЕЛОВЕКУ =================
+@bot.message_handler(commands=['user'])
+def user_info(message):
+    if message.from_user.id != ADMIN_ID:
+        return
+    
+    try:
+        user_id = int(message.text.split()[1])
+    except:
+        bot.send_message(message.chat.id, "Использование:\n<code>/user 123456789</code>", parse_mode="HTML")
+        return
+    
+    u = get_user_stats(user_id)
+    
+    if not u:
+        bot.send_message(message.chat.id, "Пользователь не найден.")
+        return
+    
+    clicks = u['clicks']
     
     text = (
-        f"📊 <b>Статистика бота</b>\n\n"
-        f"👥 Всего уникальных пользователей: <b>{total_users}</b>\n"
-        f"📅 Зашли сегодня: <b>{today_users}</b>\n\n"
-        f"<b>🔘 Нажатия за всё время:</b>\n"
-        f"• /start — {all_clicks.get('start', 0)}\n"
-        f"• Карта Black — {all_clicks.get('black', 0)}\n"
-        f"• Бизнес-счёт — {all_clicks.get('business', 0)}\n"
-        f"• Инвестиции — {all_clicks.get('invest', 0)}\n"
-        f"• Выбери продукт — {all_clicks.get('all', 0)}\n"
-        f"• Подробнее — {all_clicks.get('info', 0)}\n"
-        f"• Почему выгодно — {all_clicks.get('why', 0)}\n\n"
-        f"<b>📅 Нажатия сегодня:</b>\n"
-        f"• /start — {today_clicks.get('start', 0)}\n"
-        f"• Карта Black — {today_clicks.get('black', 0)}\n"
-        f"• Бизнес-счёт — {today_clicks.get('business', 0)}\n"
-        f"• Инвестиции — {today_clicks.get('invest', 0)}\n"
-        f"• Выбери продукт — {today_clicks.get('all', 0)}\n"
-        f"• Подробнее — {today_clicks.get('info', 0)}\n"
-        f"• Почему выгодно — {today_clicks.get('why', 0)}\n\n"
-        f"<b>📈 Последние 7 дней:</b>\n"
+        f"👤 <b>{u['full_name']}</b>\n"
+        f"ID: <code>{u['user_id']}</code>\n"
+        f"Username: @{u['username']}\n"
+        f"Первый раз: {u['first_seen']}\n"
+        f"Последний раз: {u['last_seen']}\n\n"
+        f"<b>Нажатия кнопок:</b>\n"
+        f"• /start — {clicks.get('start', 0)}\n"
+        f"• Карта Black — {clicks.get('black', 0)}\n"
+        f"• Бизнес-счёт — {clicks.get('business', 0)}\n"
+        f"• Инвестиции — {clicks.get('invest', 0)}\n"
+        f"• Выбери продукт — {clicks.get('all', 0)}\n"
+        f"• Подробнее — {clicks.get('info', 0)}\n"
+        f"• Почему выгодно — {clicks.get('why', 0)}"
     )
-    
-    for day, users_count, clicks_count in last_7_days:
-        text += f"• {day}: {users_count} чел. / {clicks_count} нажатий\n"
     
     bot.send_message(message.chat.id, text, parse_mode="HTML")
 
 # ================= ОБРАБОТКА КНОПОК =================
 @bot.message_handler(func=lambda message: True)
 def handle(message):
+    save_user(message.from_user)
     text = message.text.lower()
     user_id = message.from_user.id
 
