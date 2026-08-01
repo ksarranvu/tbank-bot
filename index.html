@@ -76,3 +76,225 @@
       background: linear-gradient(145deg, #1a1a1a, #141414);
       border-radius: 22px;
       padding: 18px;
+      border: 1px solid #2a2a2a;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .card::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(255,221,45,0.3), transparent);
+    }
+
+    .card-top {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+
+    .card-icon {
+      font-size: 22px;
+    }
+
+    .card-title {
+      font-size: 16.5px;
+      font-weight: 700;
+    }
+
+    .card-list {
+      list-style: none;
+      margin-bottom: 16px;
+    }
+
+    .card-list li {
+      font-size: 13.5px;
+      color: #b0b0b0;
+      margin-bottom: 5px;
+      padding-left: 14px;
+      position: relative;
+      line-height: 1.4;
+    }
+
+    .card-list li::before {
+      content: "✓";
+      position: absolute;
+      left: 0;
+      color: #FFDD2D;
+      font-weight: 700;
+      font-size: 12px;
+    }
+
+    .btn {
+      display: block;
+      width: 100%;
+      background: #FFDD2D;
+      color: #111;
+      border: none;
+      border-radius: 14px;
+      padding: 15px;
+      font-size: 15px;
+      font-weight: 700;
+      text-align: center;
+      text-decoration: none;
+      transition: 0.15s;
+      box-shadow: 0 4px 15px rgba(255, 221, 45, 0.25);
+    }
+
+    .btn:active {
+      transform: scale(0.97);
+      background: #f0d020;
+    }
+
+    /* ===== WARNING ===== */
+    .warning {
+      margin-top: 20px;
+      background: #1a1608;
+      border: 1px solid #3d3200;
+      border-radius: 16px;
+      padding: 14px 16px;
+      font-size: 13px;
+      color: #e8d48b;
+      line-height: 1.5;
+    }
+
+    .warning b {
+      color: #FFDD2D;
+    }
+
+    /* ===== FOOTER ===== */
+    .footer {
+      text-align: center;
+      margin-top: 28px;
+      color: #555;
+      font-size: 12px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+
+    <!-- HEADER -->
+    <div class="header">
+      <div class="logo">
+        <!-- Официальный стиль логотипа Т-Банка (щит + T) -->
+        <svg width="78" height="78" viewBox="0 0 100 110" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <filter id="glow">
+              <feGaussianBlur stdDeviation="2.5" result="coloredBlur"/>
+              <feMerge>
+                <feMergeNode in="coloredBlur"/>
+                <feMergeNode in="SourceGraphic"/>
+              </feMerge>
+            </filter>
+          </defs>
+          <!-- Щит -->
+          <path d="M50 5 
+                   L93 24 
+                   L93 70 
+                   C93 90 72 105 50 105 
+                   C28 105 7 90 7 70 
+                   L7 24 Z" 
+                fill="#FFDD2D" filter="url(#glow)"/>
+          <!-- Буква T -->
+          <text x="50" y="74" 
+                font-family="Arial Black, Arial, sans-serif" 
+                font-size="54" 
+                font-weight="900" 
+                fill="#111111" 
+                text-anchor="middle">T</text>
+        </svg>
+      </div>
+      <h1>Выгодные продукты Т-Банка</h1>
+      <p>Оформление онлайн • Бонусы • Быстро</p>
+      <div class="badge">🔥 Актуальные предложения</div>
+    </div>
+
+    <!-- CARDS -->
+    <div class="cards">
+
+      <!-- Карта Black -->
+      <div class="card">
+        <div class="card-top">
+          <div class="card-icon">💳</div>
+          <div class="card-title">Карта Black + 500 ₽</div>
+        </div>
+        <ul class="card-list">
+          <li>500 ₽ сразу на карту</li>
+          <li>Кэшбэк до 30%</li>
+          <li>Часто обслуживание 0 ₽</li>
+          <li>Бесплатная доставка</li>
+        </ul>
+        <a class="btn" href="https://tbank.ru/baf/6cDotN3sm66" target="_blank">Оформить карту + 500 ₽</a>
+      </div>
+
+      <!-- Бизнес-счёт -->
+      <div class="card">
+        <div class="card-top">
+          <div class="card-icon">💼</div>
+          <div class="card-title">Бизнес-счёт</div>
+        </div>
+        <ul class="card-list">
+          <li>Открытие за несколько минут</li>
+          <li>Удобное приложение</li>
+          <li>Бесплатные переводы</li>
+          <li>Для ИП и ООО</li>
+        </ul>
+        <a class="btn" href="https://tbank.ru/baf/4fWsjkGRCpn" target="_blank">Открыть бизнес-счёт</a>
+      </div>
+
+      <!-- Инвестиции -->
+      <div class="card">
+        <div class="card-top">
+          <div class="card-icon">📈</div>
+          <div class="card-title">Счёт для инвестиций</div>
+        </div>
+        <ul class="card-list">
+          <li>Акции, облигации, ETF</li>
+          <li>Можно начать с небольшой суммы</li>
+          <li>Удобное приложение</li>
+          <li>Низкие комиссии</li>
+        </ul>
+        <a class="btn" href="https://tbank.ru/baf/4Nha2vM22nm" target="_blank">Открыть инвестиционный счёт</a>
+      </div>
+
+      <!-- Все продукты -->
+      <div class="card">
+        <div class="card-top">
+          <div class="card-icon">🔍</div>
+          <div class="card-title">Выбери продукт сам</div>
+        </div>
+        <ul class="card-list">
+          <li>Все продукты Т-Банка</li>
+          <li>Карты, счета, инвестиции</li>
+        </ul>
+        <a class="btn" href="https://tbank.ru/baf/58KGejb8KDQ" target="_blank">Выбрать продукт</a>
+      </div>
+
+    </div>
+
+    <!-- WARNING -->
+    <div class="warning">
+      <b>⚠️ Важно:</b> Чтобы получить бонус, оформляй продукт именно по ссылке и выполни условия акции (обычно покупка или пополнение).
+    </div>
+
+    <div class="footer">
+      Официальные ссылки Т-Банка
+    </div>
+
+  </div>
+
+  <script>
+    const tg = window.Telegram.WebApp;
+    tg.ready();
+    tg.expand();
+    tg.setHeaderColor('#0c0c0c');
+    tg.setBackgroundColor('#0c0c0c');
+  </script>
+</body>
+</html>
