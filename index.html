@@ -8,11 +8,7 @@
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
 
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
 
     body {
       font-family: 'Inter', -apple-system, sans-serif;
@@ -29,7 +25,6 @@
       padding: 16px 14px;
     }
 
-    /* ===== HEADER ===== */
     .header {
       text-align: center;
       padding: 8px 0 18px;
@@ -73,22 +68,18 @@
       margin-top: 10px;
     }
 
-    /* ===== TABS ===== */
     .tab-content {
       display: none;
       animation: fade 0.25s ease;
     }
 
-    .tab-content.active {
-      display: block;
-    }
+    .tab-content.active { display: block; }
 
     @keyframes fade {
       from { opacity: 0; transform: translateY(6px); }
       to { opacity: 1; transform: translateY(0); }
     }
 
-    /* ===== CARDS ===== */
     .card {
       background: linear-gradient(145deg, #1a1a1a, #141414);
       border-radius: 20px;
@@ -102,9 +93,7 @@
     .card::before {
       content: "";
       position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
+      top: 0; left: 0; right: 0;
       height: 1px;
       background: linear-gradient(90deg, transparent, rgba(255,221,45,0.3), transparent);
     }
@@ -116,14 +105,8 @@
       margin-bottom: 10px;
     }
 
-    .card-icon {
-      font-size: 22px;
-    }
-
-    .card-title {
-      font-size: 16px;
-      font-weight: 700;
-    }
+    .card-icon { font-size: 22px; }
+    .card-title { font-size: 16px; font-weight: 700; }
 
     .card-list {
       list-style: none;
@@ -161,10 +144,16 @@
       text-align: center;
       text-decoration: none;
       box-shadow: 0 4px 15px rgba(255, 221, 45, 0.25);
+      margin-top: 10px;
     }
 
-    .btn:active {
-      transform: scale(0.97);
+    .btn:active { transform: scale(0.97); }
+
+    .btn-dark {
+      background: #222;
+      color: #fff;
+      box-shadow: none;
+      border: 1px solid #333;
     }
 
     .text-block {
@@ -198,16 +187,22 @@
       line-height: 1.5;
     }
 
-    .warning b {
+    .warning b { color: #FFDD2D; }
+
+    .admin-badge {
+      display: inline-block;
+      background: rgba(255, 221, 45, 0.15);
       color: #FFDD2D;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 4px 10px;
+      border-radius: 20px;
+      margin-bottom: 12px;
     }
 
-    /* ===== BOTTOM NAV ===== */
     .bottom-nav {
       position: fixed;
-      bottom: 0;
-      left: 0;
-      right: 0;
+      bottom: 0; left: 0; right: 0;
       background: #111;
       border-top: 1px solid #222;
       display: flex;
@@ -227,22 +222,17 @@
       background: none;
       border: none;
       cursor: pointer;
-      width: 70px;
+      width: 64px;
     }
 
-    .nav-item.active {
-      color: #FFDD2D;
-    }
-
-    .nav-icon {
-      font-size: 20px;
-    }
+    .nav-item.active { color: #FFDD2D; }
+    .nav-icon { font-size: 20px; }
+    .hidden { display: none !important; }
   </style>
 </head>
 <body>
   <div class="container">
 
-    <!-- HEADER -->
     <div class="header">
       <div class="logo">
         <img src="https://cdn.tbank.ru/static/pages/files/d39e9d26-fd5e-4574-9ad3-c3f2fc102598.png" alt="Т-Банк">
@@ -252,9 +242,8 @@
       <div class="badge">🔥 Актуальные предложения</div>
     </div>
 
-    <!-- ===================== TAB 1: ПРОДУКТЫ ===================== -->
+    <!-- TAB: ПРОДУКТЫ -->
     <div id="tab-products" class="tab-content active">
-
       <div class="card">
         <div class="card-top">
           <div class="card-icon">💳</div>
@@ -308,10 +297,9 @@
         </ul>
         <a class="btn" href="https://tbank.ru/baf/58KGejb8KDQ" target="_blank">Выбрать продукт</a>
       </div>
-
     </div>
 
-    <!-- ===================== TAB 2: ВЫГОДЫ ===================== -->
+    <!-- TAB: ВЫГОДЫ -->
     <div id="tab-benefits" class="tab-content">
       <div class="card">
         <div class="card-title">🔥 Почему это выгодно</div>
@@ -324,23 +312,9 @@
           <li>Доставка карты на дом</li>
         </ul>
       </div>
-
-      <div class="card">
-        <div class="card-title">💳 Карта Black</div>
-        <div class="text-block">
-          Одна из самых популярных дебетовых карт. Хороший кэшбэк, часто бесплатное обслуживание и бонус за оформление.
-        </div>
-      </div>
-
-      <div class="card">
-        <div class="card-title">💼 Бизнес и инвестиции</div>
-        <div class="text-block">
-          Подходит для ИП, самозанятых и тех, кто хочет начать инвестировать. Всё открывается быстро и без походов в офис.
-        </div>
-      </div>
     </div>
 
-    <!-- ===================== TAB 3: КАК ОФОРМИТЬ ===================== -->
+    <!-- TAB: КАК ОФОРМИТЬ -->
     <div id="tab-how" class="tab-content">
       <div class="card">
         <div class="card-title">📝 Как оформить</div>
@@ -352,16 +326,9 @@
           <li>Выполни условия акции</li>
         </ul>
       </div>
-
-      <div class="card">
-        <div class="card-title">⏱ Сколько занимает</div>
-        <div class="text-block">
-          Обычно заявка заполняется за 3–7 минут. Решение по многим продуктам приходит быстро.
-        </div>
-      </div>
     </div>
 
-    <!-- ===================== TAB 4: ВАЖНО ===================== -->
+    <!-- TAB: ВАЖНО -->
     <div id="tab-important" class="tab-content">
       <div class="card">
         <div class="card-title">⚠️ Важно знать</div>
@@ -372,15 +339,53 @@
           <li>Бонус приходит после выполнения условий</li>
         </ul>
       </div>
+      <div class="warning">
+        <b>Важно:</b> Если оформить продукт не по ссылке из бота или не выполнить условия — бонус может не начислиться.
+      </div>
+    </div>
+
+    <!-- TAB: АДМИН (только для тебя) -->
+    <div id="tab-admin" class="tab-content">
+      <div class="admin-badge">OWNER ACCESS</div>
+
+      <div class="card">
+        <div class="card-title">👑 Панель владельца</div>
+        <div class="text-block">
+          Быстрый доступ ко всей статистике основного бота и сотрудников.
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">📊 Команды основного бота</div>
+        <div class="text-block">
+          /stats — общая статистика<br>
+          /users — список всех людей<br>
+          /user ID — статистика по человеку<br>
+          /staff — отчёт по сотрудникам
+        </div>
+        <a class="btn btn-dark" href="https://t.me/blackcard_tb_bot" target="_blank">
+          Открыть основной бот
+        </a>
+      </div>
+
+      <div class="card">
+        <div class="card-title">👥 Бот сотрудников</div>
+        <div class="text-block">
+          /stats — статистика по всем сотрудникам
+        </div>
+        <a class="btn btn-dark" href="https://t.me/blackcard_staff_bot" target="_blank">
+          Открыть бот сотрудников
+        </a>
+      </div>
 
       <div class="warning">
-        <b>Важно:</b> Если оформить продукт не по ссылке из бота или не выполнить условия акции — бонус может не начислиться.
+        <b>Для тебя:</b> Живые данные всегда в ботах. Эта вкладка видна только владельцу.
       </div>
     </div>
 
   </div>
 
-  <!-- ===== BOTTOM NAVIGATION ===== -->
+  <!-- BOTTOM NAV -->
   <div class="bottom-nav">
     <button class="nav-item active" onclick="showTab('products')">
       <div class="nav-icon">💳</div>
@@ -398,6 +403,10 @@
       <div class="nav-icon">⚠️</div>
       <div>Важно</div>
     </button>
+    <button class="nav-item hidden" id="adminNavBtn" onclick="showTab('admin')">
+      <div class="nav-icon">👑</div>
+      <div>Админ</div>
+    </button>
   </div>
 
   <script>
@@ -407,14 +416,27 @@
     tg.setHeaderColor('#0c0c0c');
     tg.setBackgroundColor('#0c0c0c');
 
+    const OWNER_ID = 8896790430;
+    const user = tg.initDataUnsafe && tg.initDataUnsafe.user ? tg.initDataUnsafe.user : null;
+    const isOwner = user && user.id === OWNER_ID;
+
+    if (isOwner) {
+      document.getElementById('adminNavBtn').classList.remove('hidden');
+    }
+
     function showTab(tabName) {
       document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
       document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
 
       document.getElementById('tab-' + tabName).classList.add('active');
 
-      const map = { products: 0, benefits: 1, how: 2, important: 3 };
-      document.querySelectorAll('.nav-item')[map[tabName]].classList.add('active');
+      const buttons = [...document.querySelectorAll('.nav-item')].filter(b => !b.classList.contains('hidden'));
+      const names = isOwner
+        ? ['products', 'benefits', 'how', 'important', 'admin']
+        : ['products', 'benefits', 'how', 'important'];
+
+      const index = names.indexOf(tabName);
+      if (index >= 0) buttons[index].classList.add('active');
     }
   </script>
 </body>
