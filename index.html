@@ -1,250 +1,198 @@
-import os
-import telebot
-from telebot import types
-import sqlite3
-from datetime import datetime
-from threading import Thread
-from flask import Flask, request, jsonify
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Т-Банк — Выгодные продукты</title>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+    *{margin:0;padding:0;box-sizing:border-box}
+    body{font-family:Inter,-apple-system,sans-serif;background:#0c0c0c;color:#fff;min-height:100vh;padding-bottom:90px}
+    .container{max-width:440px;margin:0 auto;padding:16px 14px}
+    .header{text-align:center;padding:8px 0 18px}
+    .logo{width:78px;height:78px;margin:0 auto 14px;border-radius:20px;overflow:hidden;box-shadow:0 0 28px rgba(255,221,45,.45)}
+    .logo img{width:100%;height:100%;object-fit:cover;display:block}
+    .header h1{font-size:22px;font-weight:800;margin-bottom:4px}
+    .header p{color:#999;font-size:13.5px}
+    .badge{display:inline-block;background:rgba(255,221,45,.15);color:#FFDD2D;font-size:12px;font-weight:600;padding:5px 12px;border-radius:20px;margin-top:10px}
+    .tab-content{display:none;animation:fade .25s ease}
+    .tab-content.active{display:block}
+    @keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+    .card{background:linear-gradient(145deg,#1a1a1a,#141414);border-radius:20px;padding:18px;border:1px solid #2a2a2a;margin-bottom:12px;position:relative;overflow:hidden}
+    .card::before{content:"";position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(255,221,45,.3),transparent)}
+    .card-top{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+    .card-icon{font-size:22px}
+    .card-title{font-size:16px;font-weight:700}
+    .card-list{list-style:none;margin-bottom:14px}
+    .card-list li{font-size:13.5px;color:#b0b0b0;margin-bottom:5px;padding-left:16px;position:relative;line-height:1.4}
+    .card-list li::before{content:"✓";position:absolute;left:0;color:#FFDD2D;font-weight:700;font-size:12px}
+    .btn{display:block;width:100%;background:#FFDD2D;color:#111;border:none;border-radius:14px;padding:14px;font-size:15px;font-weight:700;text-align:center;text-decoration:none;box-shadow:0 4px 15px rgba(255,221,45,.25);margin-top:10px}
+    .btn:active{transform:scale(.97)}
+    .btn-dark{background:#222;color:#fff;box-shadow:none;border:1px solid #333}
+    .text-block{color:#aaa;font-size:14px;line-height:1.55}
+    .text-block li{margin-bottom:8px;list-style:none;padding-left:16px;position:relative}
+    .text-block li::before{content:"•";position:absolute;left:0;color:#FFDD2D;font-weight:700}
+    .warning{background:#1a1608;border:1px solid #3d3200;border-radius:16px;padding:14px 16px;font-size:13px;color:#e8d48b;line-height:1.5}
+    .warning b{color:#FFDD2D}
+    .admin-badge{display:inline-block;background:rgba(255,221,45,.15);color:#FFDD2D;font-size:11px;font-weight:700;padding:4px 10px;border-radius:20px;margin-bottom:12px}
+    .stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:12px 0}
+    .stat-box{background:#161616;border-radius:16px;padding:14px 10px;text-align:center;border:1px solid #2a2a2a}
+    .stat-number{font-size:22px;font-weight:800;color:#FFDD2D;margin-bottom:4px}
+    .stat-label{font-size:12px;color:#888}
+    .user-row{background:#161616;border:1px solid #2a2a2a;border-radius:14px;padding:12px;margin-bottom:8px;font-size:13px}
+    .muted{color:#888;font-size:12px}
+    .error{color:#ff6b6b;font-size:13px;margin-top:8px}
+    .bottom-nav{position:fixed;bottom:0;left:0;right:0;background:#111;border-top:1px solid #222;display:flex;justify-content:space-around;padding:10px 0 16px;z-index:100}
+    .nav-item{display:flex;flex-direction:column;align-items:center;gap:4px;color:#666;font-size:11px;font-weight:500;background:none;border:none;width:64px}
+    .nav-item.active{color:#FFDD2D}
+    .nav-icon{font-size:20px}
+    .hidden{display:none!important}
+  </style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <div class="logo"><img src="https://cdn.tbank.ru/static/pages/files/d39e9d26-fd5e-4574-9ad3-c3f2fc102598.png" alt="T"></div>
+    <h1>Выгодные продукты Т-Банка</h1>
+    <p>Оформление онлайн • Бонусы • Быстро</p>
+    <div class="badge">🔥 Актуальные предложения</div>
+  </div>
 
-TOKEN = os.getenv("TOKEN")
-ADMIN_ID = 8896790430
-API_KEY = os.getenv("API_KEY", "LOX22899")  # свой ключ в Variables
+  <div id="tab-products" class="tab-content active">
+    <div class="card">
+      <div class="card-top"><div class="card-icon">💳</div><div class="card-title">Карта Black + 500 ₽</div></div>
+      <ul class="card-list"><li>500 ₽ сразу на карту</li><li>Кэшбэк до 30%</li><li>Часто обслуживание 0 ₽</li><li>Бесплатная доставка</li></ul>
+      <a class="btn" href="https://tbank.ru/baf/6cDotN3sm66" target="_blank">Оформить карту + 500 ₽</a>
+    </div>
+    <div class="card">
+      <div class="card-top"><div class="card-icon">💼</div><div class="card-title">Бизнес-счёт</div></div>
+      <ul class="card-list"><li>Открытие за несколько минут</li><li>Удобное приложение</li><li>Бесплатные переводы</li><li>Для ИП и ООО</li></ul>
+      <a class="btn" href="https://tbank.ru/baf/4fWsjkGRCpn" target="_blank">Открыть бизнес-счёт</a>
+    </div>
+    <div class="card">
+      <div class="card-top"><div class="card-icon">📈</div><div class="card-title">Счёт для инвестиций</div></div>
+      <ul class="card-list"><li>Акции, облигации, ETF</li><li>Можно начать с небольшой суммы</li><li>Удобное приложение</li><li>Низкие комиссии</li></ul>
+      <a class="btn" href="https://tbank.ru/baf/4Nha2vM22nm" target="_blank">Открыть инвестиционный счёт</a>
+    </div>
+    <div class="card">
+      <div class="card-top"><div class="card-icon">🔍</div><div class="card-title">Выбери продукт сам</div></div>
+      <ul class="card-list"><li>Все продукты Т-Банка</li><li>Карты, счета, инвестиции</li></ul>
+      <a class="btn" href="https://tbank.ru/baf/58KGejb8KDQ" target="_blank">Выбрать продукт</a>
+    </div>
+  </div>
 
-bot = telebot.TeleBot(TOKEN)
-bot.delete_webhook()
+  <div id="tab-benefits" class="tab-content">
+    <div class="card">
+      <div class="card-title">🔥 Почему это выгодно</div>
+      <ul class="text-block" style="margin-top:10px">
+        <li>Оформление полностью онлайн</li><li>Бонусы за оформление</li><li>Кэшбэк и привилегии</li>
+        <li>Удобное приложение банка</li><li>Быстрое решение</li><li>Доставка карты на дом</li>
+      </ul>
+    </div>
+  </div>
 
-app = Flask(__name__)
+  <div id="tab-how" class="tab-content">
+    <div class="card">
+      <div class="card-title">📝 Как оформить</div>
+      <ul class="text-block" style="margin-top:10px">
+        <li>Выбери продукт</li><li>Нажми «Оформить»</li><li>Заполни заявку</li><li>Дождись решения</li><li>Выполни условия акции</li>
+      </ul>
+    </div>
+  </div>
 
-LINK_BLACK = "https://tbank.ru/baf/6cDotN3sm66"
-LINK_BUSINESS = "https://tbank.ru/baf/4fWsjkGRCpn"
-LINK_INVEST = "https://tbank.ru/baf/4Nha2vM22nm"
-LINK_ALL = "https://tbank.ru/baf/58KGejb8KDQ"
+  <div id="tab-important" class="tab-content">
+    <div class="card">
+      <div class="card-title">⚠️ Важно знать</div>
+      <ul class="text-block" style="margin-top:10px">
+        <li>Оформляй только по ссылке из бота</li><li>Выполни условия акции</li>
+        <li>Обычно нужна покупка или пополнение</li><li>Бонус после выполнения условий</li>
+      </ul>
+    </div>
+    <div class="warning"><b>Важно:</b> без ссылки из бота или без условий акции бонус может не прийти.</div>
+  </div>
 
-def init_db():
-    conn = sqlite3.connect("stats.db")
-    cur = conn.cursor()
-    cur.execute("""
-        CREATE TABLE IF NOT EXISTS users (
-            user_id INTEGER PRIMARY KEY,
-            username TEXT,
-            full_name TEXT,
-            first_seen TEXT,
-            last_seen TEXT,
-            from_staff_id INTEGER DEFAULT NULL
-        )
-    """)
-    cur.execute("""
-        CREATE TABLE IF NOT EXISTS clicks (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            user_id INTEGER,
-            button TEXT,
-            click_date TEXT,
-            click_time TEXT
-        )
-    """)
-    cur.execute("""
-        CREATE TABLE IF NOT EXISTS staff_referrals (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            staff_id INTEGER,
-            client_id INTEGER,
-            client_name TEXT,
-            status TEXT DEFAULT 'started',
-            created_at TEXT
-        )
-    """)
-    conn.commit()
-    conn.close()
+  <div id="tab-admin" class="tab-content">
+    <div class="admin-badge">OWNER ACCESS</div>
+    <div class="card">
+      <div class="card-title">📊 Общая статистика</div>
+      <div class="stats-grid">
+        <div class="stat-box"><div class="stat-number" id="statUsers">—</div><div class="stat-label">Пользователей</div></div>
+        <div class="stat-box"><div class="stat-number" id="statRefs">—</div><div class="stat-label">От сотрудников</div></div>
+        <div class="stat-box"><div class="stat-number" id="statCompleted">—</div><div class="stat-label">Выполнили</div></div>
+        <div class="stat-box"><div class="stat-number" id="statStarts">—</div><div class="stat-label">Стартов</div></div>
+      </div>
+      <div class="muted" id="clicksInfo">Нажатия загружаются...</div>
+      <button class="btn btn-dark" onclick="loadMainAdmin()">Обновить</button>
+      <div class="error" id="mainError"></div>
+    </div>
+    <div class="card"><div class="card-title">👥 Пользователи</div><div id="usersList" class="muted">Загрузка...</div></div>
+    <div class="card"><div class="card-title">👔 Сотрудники</div><div id="staffList" class="muted">Загрузка...</div></div>
+  </div>
+</div>
 
-def save_user(user, from_staff_id=None):
-    conn = sqlite3.connect("stats.db")
-    cur = conn.cursor()
-    full_name = f"{user.first_name or ''} {user.last_name or ''}".strip()
-    username = user.username or "нет"
-    now = datetime.now().strftime("%Y-%m-%d %H:%M")
+<div class="bottom-nav">
+  <button class="nav-item active" onclick="showTab('products')"><div class="nav-icon">💳</div><div>Продукты</div></button>
+  <button class="nav-item" onclick="showTab('benefits')"><div class="nav-icon">🔥</div><div>Выгоды</div></button>
+  <button class="nav-item" onclick="showTab('how')"><div class="nav-icon">📝</div><div>Как оформить</div></button>
+  <button class="nav-item" onclick="showTab('important')"><div class="nav-icon">⚠️</div><div>Важно</div></button>
+  <button class="nav-item hidden" id="adminNavBtn" onclick="showTab('admin')"><div class="nav-icon">👑</div><div>Админ</div></button>
+</div>
 
-    cur.execute("SELECT user_id FROM users WHERE user_id = ?", (user.id,))
-    exists = cur.fetchone()
+<script>
+  const MAIN_API = "https://ТВОЙ-ДОМЕН-ОСНОВНОГО.up.railway.app"; // ← ЗАМЕНИ
+  const API_KEY = "LOX22899";
+  const OWNER_ID = 8896790430;
 
-    if not exists:
-        cur.execute("""
-            INSERT INTO users (user_id, username, full_name, first_seen, last_seen, from_staff_id)
-            VALUES (?, ?, ?, ?, ?, ?)
-        """, (user.id, username, full_name, now, now, from_staff_id))
-        if from_staff_id:
-            cur.execute("""
-                INSERT INTO staff_referrals (staff_id, client_id, client_name, status, created_at)
-                VALUES (?, ?, ?, 'started', ?)
-            """, (from_staff_id, user.id, full_name, now))
-    else:
-        cur.execute("""
-            UPDATE users SET username=?, full_name=?, last_seen=? WHERE user_id=?
-        """, (username, full_name, now, user.id))
-    conn.commit()
-    conn.close()
+  const tg = window.Telegram.WebApp;
+  tg.ready(); tg.expand();
+  tg.setHeaderColor('#0c0c0c'); tg.setBackgroundColor('#0c0c0c');
 
-def add_click(user_id, button):
-    conn = sqlite3.connect("stats.db")
-    cur = conn.cursor()
-    now = datetime.now()
-    cur.execute("""
-        INSERT INTO clicks (user_id, button, click_date, click_time)
-        VALUES (?, ?, ?, ?)
-    """, (user_id, button, now.strftime("%Y-%m-%d"), now.strftime("%H:%M:%S")))
-    conn.commit()
-    conn.close()
+  const user = tg.initDataUnsafe?.user || null;
+  const isOwner = user && user.id === OWNER_ID;
+  if (isOwner) document.getElementById('adminNavBtn').classList.remove('hidden');
 
-init_db()
+  function showTab(name) {
+    document.querySelectorAll('.tab-content').forEach(e => e.classList.remove('active'));
+    document.querySelectorAll('.nav-item').forEach(e => e.classList.remove('active'));
+    document.getElementById('tab-' + name).classList.add('active');
+    const buttons = [...document.querySelectorAll('.nav-item')].filter(b => !b.classList.contains('hidden'));
+    const names = isOwner ? ['products','benefits','how','important','admin'] : ['products','benefits','how','important'];
+    const i = names.indexOf(name);
+    if (i >= 0) buttons[i].classList.add('active');
+    if (name === 'admin' && isOwner) loadMainAdmin();
+  }
 
-# ================= API =================
-def check_key():
-    return request.args.get("key") == API_KEY
-
-@app.route("/api/stats")
-def api_stats():
-    if not check_key():
-        return jsonify({"error": "forbidden"}), 403
-    conn = sqlite3.connect("stats.db")
-    cur = conn.cursor()
-    cur.execute("SELECT COUNT(*) FROM users")
-    total_users = cur.fetchone()[0]
-    cur.execute("SELECT button, COUNT(*) FROM clicks GROUP BY button")
-    clicks = dict(cur.fetchall())
-    cur.execute("SELECT COUNT(*) FROM staff_referrals")
-    total_refs = cur.fetchone()[0]
-    cur.execute("SELECT COUNT(*) FROM staff_referrals WHERE status='completed'")
-    completed_refs = cur.fetchone()[0]
-    conn.close()
-    return jsonify({
-        "total_users": total_users,
-        "clicks": clicks,
-        "total_refs": total_refs,
-        "completed_refs": completed_refs
-    })
-
-@app.route("/api/users")
-def api_users():
-    if not check_key():
-        return jsonify({"error": "forbidden"}), 403
-    conn = sqlite3.connect("stats.db")
-    cur = conn.cursor()
-    cur.execute("""
-        SELECT user_id, username, full_name, first_seen, last_seen, from_staff_id
-        FROM users ORDER BY last_seen DESC LIMIT 100
-    """)
-    rows = cur.fetchall()
-    users = []
-    for r in rows:
-        cur.execute("SELECT button, COUNT(*) FROM clicks WHERE user_id=? GROUP BY button", (r[0],))
-        clicks = dict(cur.fetchall())
-        users.append({
-            "user_id": r[0],
-            "username": r[1],
-            "full_name": r[2],
-            "first_seen": r[3],
-            "last_seen": r[4],
-            "from_staff_id": r[5],
-            "clicks": clicks
-        })
-    conn.close()
-    return jsonify({"users": users})
-
-@app.route("/api/staff")
-def api_staff():
-    if not check_key():
-        return jsonify({"error": "forbidden"}), 403
-    conn = sqlite3.connect("stats.db")
-    cur = conn.cursor()
-    cur.execute("""
-        SELECT staff_id,
-               COUNT(*) as total,
-               SUM(CASE WHEN status='completed' THEN 1 ELSE 0 END) as completed
-        FROM staff_referrals
-        GROUP BY staff_id
-    """)
-    rows = cur.fetchall()
-    conn.close()
-    return jsonify({
-        "staff": [{"staff_id": r[0], "total": r[1], "completed": r[2]} for r in rows]
-    })
-
-# ================= BOT =================
-def main_keyboard():
-    markup = types.ReplyKeyboardMarkup(resize_keyboard=True, row_width=1)
-    markup.add(types.KeyboardButton("💳 Карта Black + 500 ₽"))
-    markup.add(types.KeyboardButton("💼 Бизнес-счёт"))
-    markup.add(types.KeyboardButton("📈 Счёт для инвестиций"))
-    markup.add(types.KeyboardButton("🔍 Выбери продукт сам"))
-    markup.add(types.KeyboardButton("📋 Подробнее о продуктах"))
-    markup.add(types.KeyboardButton("🔥 Почему это выгодно"))
-    markup.add(types.KeyboardButton("⚠️ Важно"))
-    return markup
-
-@bot.message_handler(commands=['start'])
-def start(message):
-    from_staff_id = None
-    if message.text and len(message.text.split()) > 1:
-        param = message.text.split()[1]
-        if param.startswith("emp_"):
-            try:
-                from_staff_id = int(param.replace("emp_", ""))
-            except:
-                pass
-    save_user(message.from_user, from_staff_id)
-    add_click(message.from_user.id, "start")
-    text = (
-        "👋 <b>Добро пожаловать!</b>\n\n"
-        "Здесь можно быстро оформить выгодные продукты Т-Банка.\n\n"
-        "Выбирай, что тебе интересно 👇"
-    )
-    bot.send_message(message.chat.id, text, reply_markup=main_keyboard(), parse_mode="HTML")
-
-@bot.message_handler(func=lambda message: True)
-def handle(message):
-    save_user(message.from_user)
-    text = (message.text or "").lower()
-    user_id = message.from_user.id
-
-    if "карта" in text or "black" in text or "500" in text:
-        add_click(user_id, "black")
-        desc = "💳 <b>Дебетовая карта T-Bank Black</b>\n\n• Кэшбэк до 30%\n• 500 ₽ в подарок\n• Часто бесплатное обслуживание\n• Доставка карты домой"
-        markup = types.InlineKeyboardMarkup()
-        markup.add(types.InlineKeyboardButton("🚀 Оформить карту + 500 ₽", url=LINK_BLACK))
-        bot.send_message(message.chat.id, desc, reply_markup=markup, parse_mode="HTML")
-    elif "бизнес" in text:
-        add_click(user_id, "business")
-        desc = "💼 <b>Бизнес-счёт Т-Банка</b>\n\n• Открытие онлайн\n• Удобное приложение\n• Для ИП и ООО"
-        markup = types.InlineKeyboardMarkup()
-        markup.add(types.InlineKeyboardButton("💼 Открыть бизнес-счёт", url=LINK_BUSINESS))
-        bot.send_message(message.chat.id, desc, reply_markup=markup, parse_mode="HTML")
-    elif "инвест" in text:
-        add_click(user_id, "invest")
-        desc = "📈 <b>Счёт для инвестиций</b>\n\n• Акции, облигации, ETF\n• Можно начать с небольшой суммы"
-        markup = types.InlineKeyboardMarkup()
-        markup.add(types.InlineKeyboardButton("📈 Открыть счёт", url=LINK_INVEST))
-        bot.send_message(message.chat.id, desc, reply_markup=markup, parse_mode="HTML")
-    elif "выбери" in text or "продукт сам" in text:
-        add_click(user_id, "all")
-        desc = "🔍 <b>Выбери продукт сам</b>\n\nВсе продукты Т-Банка в одном месте."
-        markup = types.InlineKeyboardMarkup()
-        markup.add(types.InlineKeyboardButton("🔍 Выбрать", url=LINK_ALL))
-        bot.send_message(message.chat.id, desc, reply_markup=markup, parse_mode="HTML")
-    elif "подробнее" in text:
-        add_click(user_id, "info")
-        bot.send_message(message.chat.id, "📋 Карта Black, бизнес-счёт, инвестиции — всё в меню.", parse_mode="HTML")
-    elif "выгодно" in text:
-        add_click(user_id, "why")
-        bot.send_message(message.chat.id, "🔥 Оформление онлайн, бонусы и удобные приложения.")
-    elif "важно" in text:
-        add_click(user_id, "important")
-        bot.send_message(message.chat.id, "⚠️ Оформляй по ссылке из бота и выполни условия акции.", parse_mode="HTML")
-    else:
-        bot.send_message(message.chat.id, "Используй кнопки меню 👇", reply_markup=main_keyboard())
-
-def run_api():
-    port = int(os.getenv("PORT", 8080))
-    app.run(host="0.0.0.0", port=port)
-
-if __name__ == "__main__":
-    Thread(target=run_api, daemon=True).start()
-    print("✅ Основной бот + API запущены")
-    bot.infinity_polling()
+  async function loadMainAdmin() {
+    const err = document.getElementById('mainError');
+    err.textContent = '';
+    try {
+      const [stats, usersData, staffData] = await Promise.all([
+        fetch(`${MAIN_API}/api/stats?key=${API_KEY}`).then(r => r.json()),
+        fetch(`${MAIN_API}/api/users?key=${API_KEY}`).then(r => r.json()),
+        fetch(`${MAIN_API}/api/staff?key=${API_KEY}`).then(r => r.json())
+      ]);
+      if (stats.error) throw new Error(stats.error);
+      document.getElementById('statUsers').textContent = stats.total_users || 0;
+      document.getElementById('statRefs').textContent = stats.total_refs || 0;
+      document.getElementById('statCompleted').textContent = stats.completed_refs || 0;
+      document.getElementById('statStarts').textContent = stats.clicks?.start || 0;
+      const c = stats.clicks || {};
+      document.getElementById('clicksInfo').textContent =
+        `Black: ${c.black||0} · Бизнес: ${c.business||0} · Инвест: ${c.invest||0} · Все: ${c.all||0}`;
+      const users = usersData.users || [];
+      document.getElementById('usersList').innerHTML = users.length ? users.slice(0,40).map(u => `
+        <div class="user-row"><b>${u.full_name||'Без имени'}</b><br>
+        <span class="muted">ID: ${u.user_id} · @${u.username||'нет'}</span><br>
+        <span class="muted">Был: ${u.last_seen||'—'}${u.from_staff_id?' · от '+u.from_staff_id:''}</span></div>`).join('') : 'Пока нет пользователей';
+      const staff = staffData.staff || [];
+      document.getElementById('staffList').innerHTML = staff.length ? staff.map(s => `
+        <div class="user-row"><b>Сотрудник ${s.staff_id}</b><br>
+        <span class="muted">Приведено: ${s.total} · Выполнили: ${s.completed}</span></div>`).join('') : 'Пока нет данных по сотрудникам';
+    } catch(e) {
+      err.textContent = 'Ошибка загрузки. Проверь MAIN_API и что бот с Flask задеплоен.';
+    }
+  }
+</script>
+</body>
+</html>
