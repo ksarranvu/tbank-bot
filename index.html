@@ -22,8 +22,7 @@
     .card{background:linear-gradient(145deg,#1a1a1a,#141414);border-radius:20px;padding:18px;border:1px solid #2a2a2a;margin-bottom:12px;position:relative;overflow:hidden}
     .card::before{content:"";position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(255,221,45,.3),transparent)}
     .card-top{display:flex;align-items:center;gap:10px;margin-bottom:10px}
-    .card-icon{font-size:22px}
-    .card-title{font-size:16px;font-weight:700}
+    .card-icon{font-size:22px}.card-title{font-size:16px;font-weight:700}
     .card-list{list-style:none;margin-bottom:14px}
     .card-list li{font-size:13.5px;color:#b0b0b0;margin-bottom:5px;padding-left:16px;position:relative;line-height:1.4}
     .card-list li::before{content:"✓";position:absolute;left:0;color:#FFDD2D;font-weight:700;font-size:12px}
@@ -41,13 +40,10 @@
     .stat-number{font-size:22px;font-weight:800;color:#FFDD2D;margin-bottom:4px}
     .stat-label{font-size:12px;color:#888}
     .user-row{background:#161616;border:1px solid #2a2a2a;border-radius:14px;padding:12px;margin-bottom:8px;font-size:13px}
-    .muted{color:#888;font-size:12px}
-    .error{color:#ff6b6b;font-size:13px;margin-top:8px}
+    .muted{color:#888;font-size:12px}.error{color:#ff6b6b;font-size:13px;margin-top:8px}
     .bottom-nav{position:fixed;bottom:0;left:0;right:0;background:#111;border-top:1px solid #222;display:flex;justify-content:space-around;padding:10px 0 16px;z-index:100}
     .nav-item{display:flex;flex-direction:column;align-items:center;gap:4px;color:#666;font-size:11px;font-weight:500;background:none;border:none;width:64px}
-    .nav-item.active{color:#FFDD2D}
-    .nav-icon{font-size:20px}
-    .hidden{display:none!important}
+    .nav-item.active{color:#FFDD2D}.nav-icon{font-size:20px}.hidden{display:none!important}
   </style>
 </head>
 <body>
@@ -62,18 +58,18 @@
   <div id="tab-products" class="tab-content active">
     <div class="card">
       <div class="card-top"><div class="card-icon">💳</div><div class="card-title">Карта Black + 500 ₽</div></div>
-      <ul class="card-list"><li>500 ₽ сразу на карту</li><li>Кэшбэк до 30%</li><li>Часто обслуживание 0 ₽</li><li>Бесплатная доставка</li></ul>
+      <ul class="card-list"><li>500 ₽ сразу</li><li>Кэшбэк до 30%</li><li>Часто 0 ₽</li><li>Доставка</li></ul>
       <a class="btn" href="https://tbank.ru/baf/6cDotN3sm66" target="_blank">Оформить карту + 500 ₽</a>
     </div>
     <div class="card">
       <div class="card-top"><div class="card-icon">💼</div><div class="card-title">Бизнес-счёт</div></div>
-      <ul class="card-list"><li>Открытие за несколько минут</li><li>Удобное приложение</li><li>Бесплатные переводы</li><li>Для ИП и ООО</li></ul>
+      <ul class="card-list"><li>Открытие онлайн</li><li>Удобное приложение</li><li>Бесплатные переводы</li><li>ИП и ООО</li></ul>
       <a class="btn" href="https://tbank.ru/baf/4fWsjkGRCpn" target="_blank">Открыть бизнес-счёт</a>
     </div>
     <div class="card">
       <div class="card-top"><div class="card-icon">📈</div><div class="card-title">Счёт для инвестиций</div></div>
-      <ul class="card-list"><li>Акции, облигации, ETF</li><li>Можно начать с небольшой суммы</li><li>Удобное приложение</li><li>Низкие комиссии</li></ul>
-      <a class="btn" href="https://tbank.ru/baf/4Nha2vM22nm" target="_blank">Открыть инвестиционный счёт</a>
+      <ul class="card-list"><li>Акции, облигации, ETF</li><li>С небольшой суммы</li><li>Удобное приложение</li><li>Низкие комиссии</li></ul>
+      <a class="btn" href="https://tbank.ru/baf/4Nha2vM22nm" target="_blank">Открыть счёт</a>
     </div>
     <div class="card">
       <div class="card-top"><div class="card-icon">🔍</div><div class="card-title">Выбери продукт сам</div></div>
@@ -83,51 +79,46 @@
   </div>
 
   <div id="tab-benefits" class="tab-content">
-    <div class="card">
-      <div class="card-title">🔥 Почему это выгодно</div>
+    <div class="card"><div class="card-title">🔥 Почему выгодно</div>
       <ul class="text-block" style="margin-top:10px">
-        <li>Оформление полностью онлайн</li><li>Бонусы за оформление</li><li>Кэшбэк и привилегии</li>
-        <li>Удобное приложение банка</li><li>Быстрое решение</li><li>Доставка карты на дом</li>
+        <li>Онлайн</li><li>Бонусы</li><li>Кэшбэк</li><li>Приложение</li><li>Быстро</li><li>Доставка</li>
       </ul>
     </div>
   </div>
 
   <div id="tab-how" class="tab-content">
-    <div class="card">
-      <div class="card-title">📝 Как оформить</div>
+    <div class="card"><div class="card-title">📝 Как оформить</div>
       <ul class="text-block" style="margin-top:10px">
-        <li>Выбери продукт</li><li>Нажми «Оформить»</li><li>Заполни заявку</li><li>Дождись решения</li><li>Выполни условия акции</li>
+        <li>Выбери продукт</li><li>Оформи</li><li>Заполни заявку</li><li>Дождись решения</li><li>Выполни условия</li>
       </ul>
     </div>
   </div>
 
   <div id="tab-important" class="tab-content">
-    <div class="card">
-      <div class="card-title">⚠️ Важно знать</div>
+    <div class="card"><div class="card-title">⚠️ Важно</div>
       <ul class="text-block" style="margin-top:10px">
-        <li>Оформляй только по ссылке из бота</li><li>Выполни условия акции</li>
-        <li>Обычно нужна покупка или пополнение</li><li>Бонус после выполнения условий</li>
+        <li>Только по ссылке из бота</li><li>Условия акции</li><li>Покупка/пополнение</li><li>Бонус после условий</li>
       </ul>
     </div>
-    <div class="warning"><b>Важно:</b> без ссылки из бота или без условий акции бонус может не прийти.</div>
+    <div class="warning"><b>Важно:</b> без ссылки из бота бонус может не прийти.</div>
   </div>
 
   <div id="tab-admin" class="tab-content">
     <div class="admin-badge">OWNER ACCESS</div>
     <div class="card">
-      <div class="card-title">📊 Общая статистика</div>
+      <div class="card-title">📊 Статистика</div>
       <div class="stats-grid">
         <div class="stat-box"><div class="stat-number" id="statUsers">—</div><div class="stat-label">Пользователей</div></div>
         <div class="stat-box"><div class="stat-number" id="statRefs">—</div><div class="stat-label">От сотрудников</div></div>
         <div class="stat-box"><div class="stat-number" id="statCompleted">—</div><div class="stat-label">Выполнили</div></div>
         <div class="stat-box"><div class="stat-number" id="statStarts">—</div><div class="stat-label">Стартов</div></div>
       </div>
-      <div class="muted" id="clicksInfo">Нажатия загружаются...</div>
+      <div class="muted" id="clicksInfo">...</div>
       <button class="btn btn-dark" onclick="loadMainAdmin()">Обновить</button>
       <div class="error" id="mainError"></div>
     </div>
-    <div class="card"><div class="card-title">👥 Пользователи</div><div id="usersList" class="muted">Загрузка...</div></div>
-    <div class="card"><div class="card-title">👔 Сотрудники</div><div id="staffList" class="muted">Загрузка...</div></div>
+    <div class="card"><div class="card-title">👥 Пользователи</div><div id="usersList" class="muted">...</div></div>
+    <div class="card"><div class="card-title">👔 Сотрудники</div><div id="staffList" class="muted">...</div></div>
   </div>
 </div>
 
@@ -178,15 +169,19 @@
       document.getElementById('statCompleted').textContent = stats.completed_refs || 0;
       document.getElementById('statStarts').textContent = stats.clicks?.start || 0;
       const c = stats.clicks || {};
-      document.getElementById('clicksInfo').textContent =
-        `Black: ${c.black||0} · Бизнес: ${c.business||0} · Инвест: ${c.invest||0} · Все: ${c.all||0}`;
+      document.getElementById('clicksInfo').textContent = `Black: ${c.black||0} · Бизнес: ${c.business||0} · Инвест: ${c.invest||0} · Все: ${c.all||0}`;
       const users = usersData.users || [];
-      document.getElementById('usersList').innerHTML = users.length ? users.slice(0,40).map(u => `
-        <div class="user-row"><b>${u.full_name||'Без имени'}</b><br>
-        <span class="muted">ID: ${u.user_id} · @${u.username||'нет'}</span><br>
-        <span class="muted">Был: ${u.last_seen||'—'}${u.from_staff_id?' · от '+u.from_staff_id:''}</span></div>`).join('') : 'Пока нет пользователей';
+      document.getElementById('usersList').innerHTML = users.length ? users.slice(0,40).map(u =>
+        `<div class="user-row"><b>${u.full_name||'Без имени'}</b><br><span class="muted">ID: ${u.user_id} · @${u.username||'нет'}</span><br><span class="muted">Был: ${u.last_seen||'—'}${u.from_staff_id?' · от '+u.from_staff_id:''}</span></div>`
+      ).join('') : 'Пока нет пользователей';
       const staff = staffData.staff || [];
-      document.getElementById('staffList').innerHTML = staff.length ? staff.map(s => `
-        <div class="user-row"><b>Сотрудник ${s.staff_id}</b><br>
-        <span class="muted">Приведено: ${s.total} · Выполнили: ${s.completed}</span></div>`).join('') : 'Пока нет данных по сотрудникам';
-    } catch...
+      document.getElementById('staffList').innerHTML = staff.length ? staff.map(s =>
+        `<div class="user-row"><b>Сотрудник ${s.staff_id}</b><br><span class="muted">Приведено: ${s.total} · Выполнили: ${s.completed}</span></div>`
+      ).join('') : 'Пока нет данных';
+    } catch(e) {
+      err.textContent = 'Ошибка загрузки API';
+    }
+  }
+</script>
+</body>
+</html>
