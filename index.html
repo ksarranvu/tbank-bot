@@ -15,32 +15,33 @@
     }
 
     body {
-      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      font-family: 'Inter', -apple-system, sans-serif;
       background: #0c0c0c;
       color: #ffffff;
       min-height: 100vh;
-      padding: 16px 14px 50px;
+      padding-bottom: 90px;
       -webkit-font-smoothing: antialiased;
     }
 
     .container {
       max-width: 440px;
       margin: 0 auto;
+      padding: 16px 14px;
     }
 
     /* ===== HEADER ===== */
     .header {
       text-align: center;
-      padding: 12px 0 24px;
+      padding: 8px 0 18px;
     }
 
     .logo {
-      width: 84px;
-      height: 84px;
-      margin: 0 auto 18px;
+      width: 78px;
+      height: 78px;
+      margin: 0 auto 14px;
       border-radius: 20px;
       overflow: hidden;
-      box-shadow: 0 0 30px rgba(255, 221, 45, 0.45);
+      box-shadow: 0 0 28px rgba(255, 221, 45, 0.45);
     }
 
     .logo img {
@@ -51,16 +52,14 @@
     }
 
     .header h1 {
-      font-size: 23px;
+      font-size: 22px;
       font-weight: 800;
-      letter-spacing: -0.3px;
-      margin-bottom: 6px;
+      margin-bottom: 4px;
     }
 
     .header p {
-      color: #a0a0a0;
-      font-size: 14px;
-      font-weight: 500;
+      color: #999;
+      font-size: 13.5px;
     }
 
     .badge {
@@ -71,21 +70,31 @@
       font-weight: 600;
       padding: 5px 12px;
       border-radius: 20px;
-      margin-top: 12px;
+      margin-top: 10px;
+    }
+
+    /* ===== TABS ===== */
+    .tab-content {
+      display: none;
+      animation: fade 0.25s ease;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+
+    @keyframes fade {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
     }
 
     /* ===== CARDS ===== */
-    .cards {
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-    }
-
     .card {
       background: linear-gradient(145deg, #1a1a1a, #141414);
-      border-radius: 22px;
+      border-radius: 20px;
       padding: 18px;
       border: 1px solid #2a2a2a;
+      margin-bottom: 12px;
       position: relative;
       overflow: hidden;
     }
@@ -104,7 +113,7 @@
       display: flex;
       align-items: center;
       gap: 10px;
-      margin-bottom: 12px;
+      margin-bottom: 10px;
     }
 
     .card-icon {
@@ -112,20 +121,20 @@
     }
 
     .card-title {
-      font-size: 16.5px;
+      font-size: 16px;
       font-weight: 700;
     }
 
     .card-list {
       list-style: none;
-      margin-bottom: 16px;
+      margin-bottom: 14px;
     }
 
     .card-list li {
       font-size: 13.5px;
       color: #b0b0b0;
       margin-bottom: 5px;
-      padding-left: 14px;
+      padding-left: 16px;
       position: relative;
       line-height: 1.4;
     }
@@ -146,23 +155,40 @@
       color: #111;
       border: none;
       border-radius: 14px;
-      padding: 15px;
+      padding: 14px;
       font-size: 15px;
       font-weight: 700;
       text-align: center;
       text-decoration: none;
-      transition: 0.15s;
       box-shadow: 0 4px 15px rgba(255, 221, 45, 0.25);
     }
 
     .btn:active {
       transform: scale(0.97);
-      background: #f0d020;
     }
 
-    /* ===== WARNING ===== */
+    .text-block {
+      color: #aaa;
+      font-size: 14px;
+      line-height: 1.55;
+    }
+
+    .text-block li {
+      margin-bottom: 8px;
+      list-style: none;
+      padding-left: 16px;
+      position: relative;
+    }
+
+    .text-block li::before {
+      content: "•";
+      position: absolute;
+      left: 0;
+      color: #FFDD2D;
+      font-weight: 700;
+    }
+
     .warning {
-      margin-top: 20px;
       background: #1a1608;
       border: 1px solid #3d3200;
       border-radius: 16px;
@@ -176,12 +202,40 @@
       color: #FFDD2D;
     }
 
-    /* ===== FOOTER ===== */
-    .footer {
-      text-align: center;
-      margin-top: 28px;
-      color: #555;
-      font-size: 12px;
+    /* ===== BOTTOM NAV ===== */
+    .bottom-nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: #111;
+      border-top: 1px solid #222;
+      display: flex;
+      justify-content: space-around;
+      padding: 10px 0 16px;
+      z-index: 100;
+    }
+
+    .nav-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      color: #666;
+      font-size: 11px;
+      font-weight: 500;
+      background: none;
+      border: none;
+      cursor: pointer;
+      width: 70px;
+    }
+
+    .nav-item.active {
+      color: #FFDD2D;
+    }
+
+    .nav-icon {
+      font-size: 20px;
     }
   </style>
 </head>
@@ -198,10 +252,9 @@
       <div class="badge">🔥 Актуальные предложения</div>
     </div>
 
-    <!-- CARDS -->
-    <div class="cards">
+    <!-- ===================== TAB 1: ПРОДУКТЫ ===================== -->
+    <div id="tab-products" class="tab-content active">
 
-      <!-- Карта Black -->
       <div class="card">
         <div class="card-top">
           <div class="card-icon">💳</div>
@@ -216,7 +269,6 @@
         <a class="btn" href="https://tbank.ru/baf/6cDotN3sm66" target="_blank">Оформить карту + 500 ₽</a>
       </div>
 
-      <!-- Бизнес-счёт -->
       <div class="card">
         <div class="card-top">
           <div class="card-icon">💼</div>
@@ -231,7 +283,6 @@
         <a class="btn" href="https://tbank.ru/baf/4fWsjkGRCpn" target="_blank">Открыть бизнес-счёт</a>
       </div>
 
-      <!-- Инвестиции -->
       <div class="card">
         <div class="card-top">
           <div class="card-icon">📈</div>
@@ -246,7 +297,6 @@
         <a class="btn" href="https://tbank.ru/baf/4Nha2vM22nm" target="_blank">Открыть инвестиционный счёт</a>
       </div>
 
-      <!-- Все продукты -->
       <div class="card">
         <div class="card-top">
           <div class="card-icon">🔍</div>
@@ -261,15 +311,93 @@
 
     </div>
 
-    <!-- WARNING -->
-    <div class="warning">
-      <b>⚠️ Важно:</b> Чтобы получить бонус, оформляй продукт именно по ссылке и выполни условия акции (обычно покупка или пополнение).
+    <!-- ===================== TAB 2: ВЫГОДЫ ===================== -->
+    <div id="tab-benefits" class="tab-content">
+      <div class="card">
+        <div class="card-title">🔥 Почему это выгодно</div>
+        <ul class="text-block" style="margin-top: 10px;">
+          <li>Оформление полностью онлайн</li>
+          <li>Бонусы за оформление</li>
+          <li>Кэшбэк и привилегии</li>
+          <li>Удобное приложение банка</li>
+          <li>Быстрое принятие решения</li>
+          <li>Доставка карты на дом</li>
+        </ul>
+      </div>
+
+      <div class="card">
+        <div class="card-title">💳 Карта Black</div>
+        <div class="text-block">
+          Одна из самых популярных дебетовых карт. Хороший кэшбэк, часто бесплатное обслуживание и бонус за оформление.
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">💼 Бизнес и инвестиции</div>
+        <div class="text-block">
+          Подходит для ИП, самозанятых и тех, кто хочет начать инвестировать. Всё открывается быстро и без походов в офис.
+        </div>
+      </div>
     </div>
 
-    <div class="footer">
-      Официальные ссылки Т-Банка
+    <!-- ===================== TAB 3: КАК ОФОРМИТЬ ===================== -->
+    <div id="tab-how" class="tab-content">
+      <div class="card">
+        <div class="card-title">📝 Как оформить</div>
+        <ul class="text-block" style="margin-top: 10px;">
+          <li>Выбери нужный продукт</li>
+          <li>Нажми кнопку «Оформить»</li>
+          <li>Заполни короткую заявку</li>
+          <li>Дождись решения банка</li>
+          <li>Выполни условия акции</li>
+        </ul>
+      </div>
+
+      <div class="card">
+        <div class="card-title">⏱ Сколько занимает</div>
+        <div class="text-block">
+          Обычно заявка заполняется за 3–7 минут. Решение по многим продуктам приходит быстро.
+        </div>
+      </div>
     </div>
 
+    <!-- ===================== TAB 4: ВАЖНО ===================== -->
+    <div id="tab-important" class="tab-content">
+      <div class="card">
+        <div class="card-title">⚠️ Важно знать</div>
+        <ul class="text-block" style="margin-top: 10px;">
+          <li>Оформляй продукт только по ссылке из бота</li>
+          <li>Выполни условия акции банка</li>
+          <li>Обычно нужно сделать покупку или пополнение</li>
+          <li>Бонус приходит после выполнения условий</li>
+        </ul>
+      </div>
+
+      <div class="warning">
+        <b>Важно:</b> Если оформить продукт не по ссылке из бота или не выполнить условия акции — бонус может не начислиться.
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ===== BOTTOM NAVIGATION ===== -->
+  <div class="bottom-nav">
+    <button class="nav-item active" onclick="showTab('products')">
+      <div class="nav-icon">💳</div>
+      <div>Продукты</div>
+    </button>
+    <button class="nav-item" onclick="showTab('benefits')">
+      <div class="nav-icon">🔥</div>
+      <div>Выгоды</div>
+    </button>
+    <button class="nav-item" onclick="showTab('how')">
+      <div class="nav-icon">📝</div>
+      <div>Как оформить</div>
+    </button>
+    <button class="nav-item" onclick="showTab('important')">
+      <div class="nav-icon">⚠️</div>
+      <div>Важно</div>
+    </button>
   </div>
 
   <script>
@@ -278,6 +406,16 @@
     tg.expand();
     tg.setHeaderColor('#0c0c0c');
     tg.setBackgroundColor('#0c0c0c');
+
+    function showTab(tabName) {
+      document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+      document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+
+      document.getElementById('tab-' + tabName).classList.add('active');
+
+      const map = { products: 0, benefits: 1, how: 2, important: 3 };
+      document.querySelectorAll('.nav-item')[map[tabName]].classList.add('active');
+    }
   </script>
 </body>
 </html>
