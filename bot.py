@@ -8,11 +8,10 @@ from flask import Flask, request, jsonify
 
 TOKEN = os.getenv("TOKEN")
 ADMIN_ID = 8896790430
-API_KEY = os.getenv("API_KEY", "LOX22899")  # свой ключ в Variables
+API_KEY = os.getenv("API_KEY", "LOX22899")
 
 bot = telebot.TeleBot(TOKEN)
 bot.delete_webhook()
-
 app = Flask(__name__)
 
 LINK_BLACK = "https://tbank.ru/baf/6cDotN3sm66"
@@ -61,11 +60,8 @@ def save_user(user, from_staff_id=None):
     full_name = f"{user.first_name or ''} {user.last_name or ''}".strip()
     username = user.username or "нет"
     now = datetime.now().strftime("%Y-%m-%d %H:%M")
-
     cur.execute("SELECT user_id FROM users WHERE user_id = ?", (user.id,))
-    exists = cur.fetchone()
-
-    if not exists:
+    if not cur.fetchone():
         cur.execute("""
             INSERT INTO users (user_id, username, full_name, first_seen, last_seen, from_staff_id)
             VALUES (?, ?, ?, ?, ?, ?)
@@ -95,9 +91,13 @@ def add_click(user_id, button):
 
 init_db()
 
-# ================= API =================
+# ===== API =====
 def check_key():
     return request.args.get("key") == API_KEY
+
+@app.route("/")
+def home():
+    return "Main bot API OK"
 
 @app.route("/api/stats")
 def api_stats():
@@ -163,11 +163,9 @@ def api_staff():
     """)
     rows = cur.fetchall()
     conn.close()
-    return jsonify({
-        "staff": [{"staff_id": r[0], "total": r[1], "completed": r[2]} for r in rows]
-    })
+    return jsonify({"staff": [{"staff_id": r[0], "total": r[1], "completed": r[2]} for r in rows]})
 
-# ================= BOT =================
+# ===== BOT =====
 def main_keyboard():
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True, row_width=1)
     markup.add(types.KeyboardButton("💳 Карта Black + 500 ₽"))
@@ -191,12 +189,12 @@ def start(message):
                 pass
     save_user(message.from_user, from_staff_id)
     add_click(message.from_user.id, "start")
-    text = (
-        "👋 <b>Добро пожаловать!</b>\n\n"
-        "Здесь можно быстро оформить выгодные продукты Т-Банка.\n\n"
-        "Выбирай, что тебе интересно 👇"
+    bot.send_message(
+        message.chat.id,
+        "👋 <b>Добро пожаловать!</b>\n\nЗдесь можно быстро оформить продукты Т-Банка.\n\nВыбирай 👇",
+        reply_markup=main_keyboard(),
+        parse_mode="HTML"
     )
-    bot.send_message(message.chat.id, text, reply_markup=main_keyboard(), parse_mode="HTML")
 
 @bot.message_handler(func=lambda message: True)
 def handle(message):
@@ -206,34 +204,30 @@ def handle(message):
 
     if "карта" in text or "black" in text or "500" in text:
         add_click(user_id, "black")
-        desc = "💳 <b>Дебетовая карта T-Bank Black</b>\n\n• Кэшбэк до 30%\n• 500 ₽ в подарок\n• Часто бесплатное обслуживание\n• Доставка карты домой"
         markup = types.InlineKeyboardMarkup()
         markup.add(types.InlineKeyboardButton("🚀 Оформить карту + 500 ₽", url=LINK_BLACK))
-        bot.send_message(message.chat.id, desc, reply_markup=markup, parse_mode="HTML")
+        bot.send_message(message.chat.id, "💳 <b>Карта Black</b>\n\n• Кэшбэк до 30%\n• 500 ₽ в подарок\n• Доставка домой", reply_markup=markup, parse_mode="HTML")
     elif "бизнес" in text:
         add_click(user_id, "business")
-        desc = "💼 <b>Бизнес-счёт Т-Банка</b>\n\n• Открытие онлайн\n• Удобное приложение\n• Для ИП и ООО"
         markup = types.InlineKeyboardMarkup()
         markup.add(types.InlineKeyboardButton("💼 Открыть бизнес-счёт", url=LINK_BUSINESS))
-        bot.send_message(message.chat.id, desc, reply_markup=markup, parse_mode="HTML")
+        bot.send_message(message.chat.id, "💼 <b>Бизнес-счёт</b>\n\n• Онлайн\n• Для ИП и ООО", reply_markup=markup, parse_mode="HTML")
     elif "инвест" in text:
         add_click(user_id, "invest")
-        desc = "📈 <b>Счёт для инвестиций</b>\n\n• Акции, облигации, ETF\n• Можно начать с небольшой суммы"
         markup = types.InlineKeyboardMarkup()
         markup.add(types.InlineKeyboardButton("📈 Открыть счёт", url=LINK_INVEST))
-        bot.send_message(message.chat.id, desc, reply_markup=markup, parse_mode="HTML")
+        bot.send_message(message.chat.id, "📈 <b>Инвестиции</b>\n\n• Акции, облигации, ETF", reply_markup=markup, parse_mode="HTML")
     elif "выбери" in text or "продукт сам" in text:
         add_click(user_id, "all")
-        desc = "🔍 <b>Выбери продукт сам</b>\n\nВсе продукты Т-Банка в одном месте."
         markup = types.InlineKeyboardMarkup()
         markup.add(types.InlineKeyboardButton("🔍 Выбрать", url=LINK_ALL))
-        bot.send_message(message.chat.id, desc, reply_markup=markup, parse_mode="HTML")
+        bot.send_message(message.chat.id, "🔍 Все продукты Т-Банка", reply_markup=markup, parse_mode="HTML")
     elif "подробнее" in text:
         add_click(user_id, "info")
-        bot.send_message(message.chat.id, "📋 Карта Black, бизнес-счёт, инвестиции — всё в меню.", parse_mode="HTML")
+        bot.send_message(message.chat.id, "📋 Карта Black, бизнес-счёт, инвестиции — в меню.")
     elif "выгодно" in text:
         add_click(user_id, "why")
-        bot.send_message(message.chat.id, "🔥 Оформление онлайн, бонусы и удобные приложения.")
+        bot.send_message(message.chat.id, "🔥 Онлайн, бонусы, удобные приложения.")
     elif "важно" in text:
         add_click(user_id, "important")
         bot.send_message(message.chat.id, "⚠️ Оформляй по ссылке из бота и выполни условия акции.", parse_mode="HTML")
@@ -246,5 +240,5 @@ def run_api():
 
 if __name__ == "__main__":
     Thread(target=run_api, daemon=True).start()
-    print("✅ Основной бот + API запущены")
+    print("✅ Основной бот + Flask API")
     bot.infinity_polling()
