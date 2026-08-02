@@ -140,7 +140,7 @@
 </div>
 
 <script>
-  const MAIN_API = "https://ТВОЙ-ДОМЕН-ОСНОВНОГО.up.railway.app"; // ← ЗАМЕНИ
+  const MAIN_API = "https://tbank-bot-production.up.railway.app";
   const API_KEY = "LOX22899";
   const OWNER_ID = 8896790430;
 
@@ -189,10 +189,4 @@
       document.getElementById('staffList').innerHTML = staff.length ? staff.map(s => `
         <div class="user-row"><b>Сотрудник ${s.staff_id}</b><br>
         <span class="muted">Приведено: ${s.total} · Выполнили: ${s.completed}</span></div>`).join('') : 'Пока нет данных по сотрудникам';
-    } catch(e) {
-      err.textContent = 'Ошибка загрузки. Проверь MAIN_API и что бот с Flask задеплоен.';
-    }
-  }
-</script>
-</body>
-</html>
+    } catch...
