@@ -1,4 +1,43 @@
-import os
+from database import add_referral, update_referral_status, get_employee_name
+from aiogram.enums import ParseMode
+
+STAFF_BOT_TOKEN = "8833734557:AAF0hC60LXCDdwF6K_lAZFZJRlzGsntaJUc"
+staff_bot = Bot(token=STAFF_BOT_TOKEN)
+
+async def notify_admin_from_main(text: str):
+    try:
+        await staff_bot.send_message(8896790430, text, parse_mode=ParseMode.HTML)
+    except Exception as e:
+        print(f"Ошибка уведомления: {e}")
+
+@dp.message(Command("start"))
+async def main_start(message: types.Message):
+    args = message.text.split()
+    user = message.from_user
+
+    if len(args) > 1 and args[1].startswith("ref_"):
+        try:
+            employee_id = int(args[1].replace("ref_", ""))
+            is_new = await add_referral(
+                employee_id=employee_id,
+                referred_user_id=user.id,
+                username=user.username,
+                full_name=user.full_name
+            )
+            if is_new:
+                emp_name = await get_employee_name(employee_id)
+                text = (
+                    f"<b>🔔 Новый переход по QR</b>\n\n"
+                    f"Сотрудник: <b>{emp_name}</b>\n"
+                    f"Пришёл: <b>{user.full_name}</b>"
+                )
+                if user.username:
+                    text += f" (@{user.username})"
+                text += f"\nID: <code>{user.id}</code>"
+                await notify_admin_from_main(text)
+        except Exception as e:
+            print(e)
+
 import telebot
 from telebot import types
 import sqlite3
