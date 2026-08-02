@@ -143,7 +143,25 @@ def main_keyboard():
 def start(message):
     save_user(message.from_user)
     add_click(message.from_user.id, "start")
-    
+    from database import add_referral
+
+@dp.message(Command("start"))
+async def main_start(message: types.Message):
+    args = message.text.split()
+    user = message.from_user
+
+    if len(args) > 1 and args[1].startswith("ref_"):
+        try:
+            employee_id = int(args[1].replace("ref_", ""))
+            await add_referral(
+                employee_id=employee_id,
+                referred_user_id=user.id,
+                username=user.username,
+                full_name=user.full_name
+            )
+        except:
+            pass
+
     text = (
         "👋 <b>Добро пожаловать!</b>\n\n"
         "Здесь можно быстро оформить выгодные продукты Т-Банка.\n\n"
