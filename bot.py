@@ -1,43 +1,4 @@
-from database import add_referral, update_referral_status, get_employee_name
-from aiogram.enums import ParseMode
-
-STAFF_BOT_TOKEN = "8833734557:AAF0hC60LXCDdwF6K_lAZFZJRlzGsntaJUc"
-staff_bot = Bot(token=STAFF_BOT_TOKEN)
-
-async def notify_admin_from_main(text: str):
-    try:
-        await staff_bot.send_message(8896790430, text, parse_mode=ParseMode.HTML)
-    except Exception as e:
-        print(f"Ошибка уведомления: {e}")
-
-@dp.message(Command("start"))
-async def main_start(message: types.Message):
-    args = message.text.split()
-    user = message.from_user
-
-    if len(args) > 1 and args[1].startswith("ref_"):
-        try:
-            employee_id = int(args[1].replace("ref_", ""))
-            is_new = await add_referral(
-                employee_id=employee_id,
-                referred_user_id=user.id,
-                username=user.username,
-                full_name=user.full_name
-            )
-            if is_new:
-                emp_name = await get_employee_name(employee_id)
-                text = (
-                    f"<b>🔔 Новый переход по QR</b>\n\n"
-                    f"Сотрудник: <b>{emp_name}</b>\n"
-                    f"Пришёл: <b>{user.full_name}</b>"
-                )
-                if user.username:
-                    text += f" (@{user.username})"
-                text += f"\nID: <code>{user.id}</code>"
-                await notify_admin_from_main(text)
-        except Exception as e:
-            print(e)
-
+import os
 import telebot
 from telebot import types
 import sqlite3
@@ -60,16 +21,19 @@ def init_db():
     conn = sqlite3.connect("stats.db")
     cur = conn.cursor()
     
+    # Пользователи
     cur.execute("""
         CREATE TABLE IF NOT EXISTS users (
             user_id INTEGER PRIMARY KEY,
             username TEXT,
             full_name TEXT,
             first_seen TEXT,
-            last_seen TEXT
+            last_seen TEXT,
+            from_staff_id INTEGER DEFAULT NULL
         )
     """)
     
+    # Нажатия кнопок
     cur.execute("""
         CREATE TABLE IF NOT EXISTS clicks (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -80,10 +44,22 @@ def init_db():
         )
     """)
     
+    # Рефералы от сотрудников
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS staff_referrals (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            staff_id INTEGER,
+            client_id INTEGER,
+            client_name TEXT,
+            status TEXT DEFAULT 'started',
+            created_at TEXT
+        )
+    """)
+    
     conn.commit()
     conn.close()
 
-def save_user(user):
+def save_user(user, from_staff_id=None):
     conn = sqlite3.connect("stats.db")
     cur = conn.cursor()
     
@@ -91,14 +67,28 @@ def save_user(user):
     username = user.username or "нет"
     now = datetime.now().strftime("%Y-%m-%d %H:%M")
     
-    cur.execute("""
-        INSERT INTO users (user_id, username, full_name, first_seen, last_seen)
-        VALUES (?, ?, ?, ?, ?)
-        ON CONFLICT(user_id) DO UPDATE SET
-            username = excluded.username,
-            full_name = excluded.full_name,
-            last_seen = excluded.last_seen
-    """, (user.id, username, full_name, now, now))
+    cur.execute("SELECT from_staff_id FROM users WHERE user_id = ?", (user.id,))
+    row = cur.fetchone()
+    
+    if row is None:
+        # Новый пользователь
+        cur.execute("""
+            INSERT INTO users (user_id, username, full_name, first_seen, last_seen, from_staff_id)
+            VALUES (?, ?, ?, ?, ?, ?)
+        """, (user.id, username, full_name, now, now, from_staff_id))
+        
+        # Если пришёл от сотрудника — записываем реферал
+        if from_staff_id:
+            cur.execute("""
+                INSERT INTO staff_referrals (staff_id, client_id, client_name, status, created_at)
+                VALUES (?, ?, ?, 'started', ?)
+            """, (from_staff_id, user.id, full_name, now))
+    else:
+        # Обновляем только имя и last_seen
+        cur.execute("""
+            UPDATE users SET username = ?, full_name = ?, last_seen = ?
+            WHERE user_id = ?
+        """, (username, full_name, now, user.id))
     
     conn.commit()
     conn.close()
@@ -118,12 +108,12 @@ def get_all_users_stats():
     conn = sqlite3.connect("stats.db")
     cur = conn.cursor()
     
-    cur.execute("SELECT user_id, username, full_name, first_seen, last_seen FROM users ORDER BY last_seen DESC")
+    cur.execute("SELECT user_id, username, full_name, first_seen, last_seen, from_staff_id FROM users ORDER BY last_seen DESC")
     users = cur.fetchall()
     
     result = []
     for user in users:
-        user_id, username, full_name, first_seen, last_seen = user
+        user_id, username, full_name, first_seen, last_seen, from_staff_id = user
         cur.execute("SELECT button, COUNT(*) FROM clicks WHERE user_id = ? GROUP BY button", (user_id,))
         clicks = dict(cur.fetchall())
         
@@ -133,6 +123,7 @@ def get_all_users_stats():
             "full_name": full_name,
             "first_seen": first_seen,
             "last_seen": last_seen,
+            "from_staff_id": from_staff_id,
             "clicks": clicks
         })
     
@@ -143,7 +134,7 @@ def get_user_stats(user_id):
     conn = sqlite3.connect("stats.db")
     cur = conn.cursor()
     
-    cur.execute("SELECT username, full_name, first_seen, last_seen FROM users WHERE user_id = ?", (user_id,))
+    cur.execute("SELECT username, full_name, first_seen, last_seen, from_staff_id FROM users WHERE user_id = ?", (user_id,))
     user = cur.fetchone()
     
     if not user:
@@ -160,8 +151,24 @@ def get_user_stats(user_id):
         "full_name": user[1],
         "first_seen": user[2],
         "last_seen": user[3],
+        "from_staff_id": user[4],
         "clicks": clicks
     }
+
+def get_staff_report():
+    conn = sqlite3.connect("stats.db")
+    cur = conn.cursor()
+    
+    cur.execute("""
+        SELECT staff_id, 
+               COUNT(*) as total,
+               SUM(CASE WHEN status = 'completed' THEN 1 ELSE 0 END) as completed
+        FROM staff_referrals
+        GROUP BY staff_id
+    """)
+    rows = cur.fetchall()
+    conn.close()
+    return rows
 
 init_db()
 
@@ -180,27 +187,20 @@ def main_keyboard():
 # ================= START =================
 @bot.message_handler(commands=['start'])
 def start(message):
-    save_user(message.from_user)
+    from_staff_id = None
+    
+    # Проверяем, пришёл ли человек от сотрудника
+    if message.text and len(message.text.split()) > 1:
+        param = message.text.split()[1]
+        if param.startswith("emp_"):
+            try:
+                from_staff_id = int(param.replace("emp_", ""))
+            except:
+                from_staff_id = None
+    
+    save_user(message.from_user, from_staff_id)
     add_click(message.from_user.id, "start")
-    from database import add_referral
-
-@dp.message(Command("start"))
-async def main_start(message: types.Message):
-    args = message.text.split()
-    user = message.from_user
-
-    if len(args) > 1 and args[1].startswith("ref_"):
-        try:
-            employee_id = int(args[1].replace("ref_", ""))
-            await add_referral(
-                employee_id=employee_id,
-                referred_user_id=user.id,
-                username=user.username,
-                full_name=user.full_name
-            )
-        except:
-            pass
-
+    
     text = (
         "👋 <b>Добро пожаловать!</b>\n\n"
         "Здесь можно быстро оформить выгодные продукты Т-Банка.\n\n"
@@ -222,7 +222,8 @@ def stats(message):
         f"👥 Всего пользователей: <b>{total}</b>\n\n"
         f"Команды:\n"
         f"/users — список всех людей\n"
-        f"/user ID — статистика по человеку"
+        f"/user ID — статистика по человеку\n"
+        f"/staff — отчёт по сотрудникам"
     )
     bot.send_message(message.chat.id, text, parse_mode="HTML")
 
@@ -241,11 +242,13 @@ def users_list(message):
     
     for u in users:
         clicks = u['clicks']
-        text += f"👤 <b>{u['full_name']}</b>\n"
+        staff_info = f" (от сотрудника {u['from_staff_id']})" if u['from_staff_id'] else ""
+        
+        text += f"👤 <b>{u['full_name']}</b>{staff_info}\n"
         text += f"ID: <code>{u['user_id']}</code>\n"
         text += f"@{u['username']}\n"
         text += f"Последний раз: {u['last_seen']}\n"
-        text += f"Нажатия: start {clicks.get('start', 0)} | black {clicks.get('black', 0)} | business {clicks.get('business', 0)} | invest {clicks.get('invest', 0)}\n"
+        text += f"Нажатия: start {clicks.get('start', 0)} | black {clicks.get('black', 0)} | business {clicks.get('business', 0)}\n"
         text += "————————————\n"
         
         if len(text) > 3500:
@@ -273,13 +276,15 @@ def user_info(message):
         return
     
     clicks = u['clicks']
+    staff_info = f"\nПришёл от сотрудника: <code>{u['from_staff_id']}</code>" if u['from_staff_id'] else ""
     
     text = (
         f"👤 <b>{u['full_name']}</b>\n"
         f"ID: <code>{u['user_id']}</code>\n"
         f"Username: @{u['username']}\n"
         f"Первый раз: {u['first_seen']}\n"
-        f"Последний раз: {u['last_seen']}\n\n"
+        f"Последний раз: {u['last_seen']}"
+        f"{staff_info}\n\n"
         f"<b>Нажатия кнопок:</b>\n"
         f"• /start — {clicks.get('start', 0)}\n"
         f"• Карта Black — {clicks.get('black', 0)}\n"
@@ -290,6 +295,29 @@ def user_info(message):
         f"• Почему выгодно — {clicks.get('why', 0)}\n"
         f"• Важно — {clicks.get('important', 0)}"
     )
+    
+    bot.send_message(message.chat.id, text, parse_mode="HTML")
+
+@bot.message_handler(commands=['staff'])
+def staff_report(message):
+    if message.from_user.id != ADMIN_ID:
+        return
+    
+    report = get_staff_report()
+    
+    if not report:
+        bot.send_message(message.chat.id, "Пока нет переходов от сотрудников.")
+        return
+    
+    text = "👥 <b>Отчёт по сотрудникам</b>\n\n"
+    
+    for staff_id, total, completed in report:
+        text += (
+            f"Сотрудник ID: <code>{staff_id}</code>\n"
+            f"Приведено: <b>{total}</b>\n"
+            f"Выполнили условия: <b>{completed}</b>\n"
+            f"————————————\n"
+        )
     
     bot.send_message(message.chat.id, text, parse_mode="HTML")
 
@@ -381,5 +409,5 @@ def handle(message):
     else:
         bot.send_message(message.chat.id, "Используй кнопки меню 👇", reply_markup=main_keyboard())
 
-print("✅ Бот запущен!")
+print("✅ Основной бот запущен!")
 bot.infinity_polling()
