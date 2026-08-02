@@ -3,25 +3,26 @@ import telebot
 from telebot import types
 import sqlite3
 from datetime import datetime
+from threading import Thread
+from flask import Flask, request, jsonify
 
 TOKEN = os.getenv("TOKEN")
+ADMIN_ID = 8896790430
+API_KEY = os.getenv("API_KEY", "LOX22899")  # свой ключ в Variables
+
 bot = telebot.TeleBot(TOKEN)
 bot.delete_webhook()
 
-# ================= ССЫЛКИ =================
+app = Flask(__name__)
+
 LINK_BLACK = "https://tbank.ru/baf/6cDotN3sm66"
 LINK_BUSINESS = "https://tbank.ru/baf/4fWsjkGRCpn"
 LINK_INVEST = "https://tbank.ru/baf/4Nha2vM22nm"
 LINK_ALL = "https://tbank.ru/baf/58KGejb8KDQ"
 
-ADMIN_ID = 8896790430
-
-# ================= БАЗА ДАННЫХ =================
 def init_db():
     conn = sqlite3.connect("stats.db")
     cur = conn.cursor()
-    
-    # Пользователи
     cur.execute("""
         CREATE TABLE IF NOT EXISTS users (
             user_id INTEGER PRIMARY KEY,
@@ -32,8 +33,6 @@ def init_db():
             from_staff_id INTEGER DEFAULT NULL
         )
     """)
-    
-    # Нажатия кнопок
     cur.execute("""
         CREATE TABLE IF NOT EXISTS clicks (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -43,8 +42,6 @@ def init_db():
             click_time TEXT
         )
     """)
-    
-    # Рефералы от сотрудников
     cur.execute("""
         CREATE TABLE IF NOT EXISTS staff_referrals (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -55,41 +52,33 @@ def init_db():
             created_at TEXT
         )
     """)
-    
     conn.commit()
     conn.close()
 
 def save_user(user, from_staff_id=None):
     conn = sqlite3.connect("stats.db")
     cur = conn.cursor()
-    
     full_name = f"{user.first_name or ''} {user.last_name or ''}".strip()
     username = user.username or "нет"
     now = datetime.now().strftime("%Y-%m-%d %H:%M")
-    
-    cur.execute("SELECT from_staff_id FROM users WHERE user_id = ?", (user.id,))
-    row = cur.fetchone()
-    
-    if row is None:
-        # Новый пользователь
+
+    cur.execute("SELECT user_id FROM users WHERE user_id = ?", (user.id,))
+    exists = cur.fetchone()
+
+    if not exists:
         cur.execute("""
             INSERT INTO users (user_id, username, full_name, first_seen, last_seen, from_staff_id)
             VALUES (?, ?, ?, ?, ?, ?)
         """, (user.id, username, full_name, now, now, from_staff_id))
-        
-        # Если пришёл от сотрудника — записываем реферал
         if from_staff_id:
             cur.execute("""
                 INSERT INTO staff_referrals (staff_id, client_id, client_name, status, created_at)
                 VALUES (?, ?, ?, 'started', ?)
             """, (from_staff_id, user.id, full_name, now))
     else:
-        # Обновляем только имя и last_seen
         cur.execute("""
-            UPDATE users SET username = ?, full_name = ?, last_seen = ?
-            WHERE user_id = ?
+            UPDATE users SET username=?, full_name=?, last_seen=? WHERE user_id=?
         """, (username, full_name, now, user.id))
-    
     conn.commit()
     conn.close()
 
@@ -104,75 +93,81 @@ def add_click(user_id, button):
     conn.commit()
     conn.close()
 
-def get_all_users_stats():
+init_db()
+
+# ================= API =================
+def check_key():
+    return request.args.get("key") == API_KEY
+
+@app.route("/api/stats")
+def api_stats():
+    if not check_key():
+        return jsonify({"error": "forbidden"}), 403
     conn = sqlite3.connect("stats.db")
     cur = conn.cursor()
-    
-    cur.execute("SELECT user_id, username, full_name, first_seen, last_seen, from_staff_id FROM users ORDER BY last_seen DESC")
-    users = cur.fetchall()
-    
-    result = []
-    for user in users:
-        user_id, username, full_name, first_seen, last_seen, from_staff_id = user
-        cur.execute("SELECT button, COUNT(*) FROM clicks WHERE user_id = ? GROUP BY button", (user_id,))
+    cur.execute("SELECT COUNT(*) FROM users")
+    total_users = cur.fetchone()[0]
+    cur.execute("SELECT button, COUNT(*) FROM clicks GROUP BY button")
+    clicks = dict(cur.fetchall())
+    cur.execute("SELECT COUNT(*) FROM staff_referrals")
+    total_refs = cur.fetchone()[0]
+    cur.execute("SELECT COUNT(*) FROM staff_referrals WHERE status='completed'")
+    completed_refs = cur.fetchone()[0]
+    conn.close()
+    return jsonify({
+        "total_users": total_users,
+        "clicks": clicks,
+        "total_refs": total_refs,
+        "completed_refs": completed_refs
+    })
+
+@app.route("/api/users")
+def api_users():
+    if not check_key():
+        return jsonify({"error": "forbidden"}), 403
+    conn = sqlite3.connect("stats.db")
+    cur = conn.cursor()
+    cur.execute("""
+        SELECT user_id, username, full_name, first_seen, last_seen, from_staff_id
+        FROM users ORDER BY last_seen DESC LIMIT 100
+    """)
+    rows = cur.fetchall()
+    users = []
+    for r in rows:
+        cur.execute("SELECT button, COUNT(*) FROM clicks WHERE user_id=? GROUP BY button", (r[0],))
         clicks = dict(cur.fetchall())
-        
-        result.append({
-            "user_id": user_id,
-            "username": username,
-            "full_name": full_name,
-            "first_seen": first_seen,
-            "last_seen": last_seen,
-            "from_staff_id": from_staff_id,
+        users.append({
+            "user_id": r[0],
+            "username": r[1],
+            "full_name": r[2],
+            "first_seen": r[3],
+            "last_seen": r[4],
+            "from_staff_id": r[5],
             "clicks": clicks
         })
-    
     conn.close()
-    return result
+    return jsonify({"users": users})
 
-def get_user_stats(user_id):
+@app.route("/api/staff")
+def api_staff():
+    if not check_key():
+        return jsonify({"error": "forbidden"}), 403
     conn = sqlite3.connect("stats.db")
     cur = conn.cursor()
-    
-    cur.execute("SELECT username, full_name, first_seen, last_seen, from_staff_id FROM users WHERE user_id = ?", (user_id,))
-    user = cur.fetchone()
-    
-    if not user:
-        conn.close()
-        return None
-    
-    cur.execute("SELECT button, COUNT(*) FROM clicks WHERE user_id = ? GROUP BY button", (user_id,))
-    clicks = dict(cur.fetchall())
-    
-    conn.close()
-    return {
-        "user_id": user_id,
-        "username": user[0],
-        "full_name": user[1],
-        "first_seen": user[2],
-        "last_seen": user[3],
-        "from_staff_id": user[4],
-        "clicks": clicks
-    }
-
-def get_staff_report():
-    conn = sqlite3.connect("stats.db")
-    cur = conn.cursor()
-    
     cur.execute("""
-        SELECT staff_id, 
+        SELECT staff_id,
                COUNT(*) as total,
-               SUM(CASE WHEN status = 'completed' THEN 1 ELSE 0 END) as completed
+               SUM(CASE WHEN status='completed' THEN 1 ELSE 0 END) as completed
         FROM staff_referrals
         GROUP BY staff_id
     """)
     rows = cur.fetchall()
     conn.close()
-    return rows
+    return jsonify({
+        "staff": [{"staff_id": r[0], "total": r[1], "completed": r[2]} for r in rows]
+    })
 
-init_db()
-
-# ================= КЛАВИАТУРА =================
+# ================= BOT =================
 def main_keyboard():
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True, row_width=1)
     markup.add(types.KeyboardButton("💳 Карта Black + 500 ₽"))
@@ -184,23 +179,18 @@ def main_keyboard():
     markup.add(types.KeyboardButton("⚠️ Важно"))
     return markup
 
-# ================= START =================
 @bot.message_handler(commands=['start'])
 def start(message):
     from_staff_id = None
-    
-    # Проверяем, пришёл ли человек от сотрудника
     if message.text and len(message.text.split()) > 1:
         param = message.text.split()[1]
         if param.startswith("emp_"):
             try:
                 from_staff_id = int(param.replace("emp_", ""))
             except:
-                from_staff_id = None
-    
+                pass
     save_user(message.from_user, from_staff_id)
     add_click(message.from_user.id, "start")
-    
     text = (
         "👋 <b>Добро пожаловать!</b>\n\n"
         "Здесь можно быстро оформить выгодные продукты Т-Банка.\n\n"
@@ -208,206 +198,53 @@ def start(message):
     )
     bot.send_message(message.chat.id, text, reply_markup=main_keyboard(), parse_mode="HTML")
 
-# ================= АДМИН КОМАНДЫ =================
-@bot.message_handler(commands=['stats'])
-def stats(message):
-    if message.from_user.id != ADMIN_ID:
-        return
-    
-    users = get_all_users_stats()
-    total = len(users)
-    
-    text = (
-        f"📊 <b>Общая статистика</b>\n\n"
-        f"👥 Всего пользователей: <b>{total}</b>\n\n"
-        f"Команды:\n"
-        f"/users — список всех людей\n"
-        f"/user ID — статистика по человеку\n"
-        f"/staff — отчёт по сотрудникам"
-    )
-    bot.send_message(message.chat.id, text, parse_mode="HTML")
-
-@bot.message_handler(commands=['users'])
-def users_list(message):
-    if message.from_user.id != ADMIN_ID:
-        return
-    
-    users = get_all_users_stats()
-    
-    if not users:
-        bot.send_message(message.chat.id, "Пока никто не заходил.")
-        return
-    
-    text = "👥 <b>Список людей:</b>\n\n"
-    
-    for u in users:
-        clicks = u['clicks']
-        staff_info = f" (от сотрудника {u['from_staff_id']})" if u['from_staff_id'] else ""
-        
-        text += f"👤 <b>{u['full_name']}</b>{staff_info}\n"
-        text += f"ID: <code>{u['user_id']}</code>\n"
-        text += f"@{u['username']}\n"
-        text += f"Последний раз: {u['last_seen']}\n"
-        text += f"Нажатия: start {clicks.get('start', 0)} | black {clicks.get('black', 0)} | business {clicks.get('business', 0)}\n"
-        text += "————————————\n"
-        
-        if len(text) > 3500:
-            bot.send_message(message.chat.id, text, parse_mode="HTML")
-            text = ""
-    
-    if text:
-        bot.send_message(message.chat.id, text, parse_mode="HTML")
-
-@bot.message_handler(commands=['user'])
-def user_info(message):
-    if message.from_user.id != ADMIN_ID:
-        return
-    
-    try:
-        user_id = int(message.text.split()[1])
-    except:
-        bot.send_message(message.chat.id, "Использование:\n<code>/user 123456789</code>", parse_mode="HTML")
-        return
-    
-    u = get_user_stats(user_id)
-    
-    if not u:
-        bot.send_message(message.chat.id, "Пользователь не найден.")
-        return
-    
-    clicks = u['clicks']
-    staff_info = f"\nПришёл от сотрудника: <code>{u['from_staff_id']}</code>" if u['from_staff_id'] else ""
-    
-    text = (
-        f"👤 <b>{u['full_name']}</b>\n"
-        f"ID: <code>{u['user_id']}</code>\n"
-        f"Username: @{u['username']}\n"
-        f"Первый раз: {u['first_seen']}\n"
-        f"Последний раз: {u['last_seen']}"
-        f"{staff_info}\n\n"
-        f"<b>Нажатия кнопок:</b>\n"
-        f"• /start — {clicks.get('start', 0)}\n"
-        f"• Карта Black — {clicks.get('black', 0)}\n"
-        f"• Бизнес-счёт — {clicks.get('business', 0)}\n"
-        f"• Инвестиции — {clicks.get('invest', 0)}\n"
-        f"• Выбери продукт — {clicks.get('all', 0)}\n"
-        f"• Подробнее — {clicks.get('info', 0)}\n"
-        f"• Почему выгодно — {clicks.get('why', 0)}\n"
-        f"• Важно — {clicks.get('important', 0)}"
-    )
-    
-    bot.send_message(message.chat.id, text, parse_mode="HTML")
-
-@bot.message_handler(commands=['staff'])
-def staff_report(message):
-    if message.from_user.id != ADMIN_ID:
-        return
-    
-    report = get_staff_report()
-    
-    if not report:
-        bot.send_message(message.chat.id, "Пока нет переходов от сотрудников.")
-        return
-    
-    text = "👥 <b>Отчёт по сотрудникам</b>\n\n"
-    
-    for staff_id, total, completed in report:
-        text += (
-            f"Сотрудник ID: <code>{staff_id}</code>\n"
-            f"Приведено: <b>{total}</b>\n"
-            f"Выполнили условия: <b>{completed}</b>\n"
-            f"————————————\n"
-        )
-    
-    bot.send_message(message.chat.id, text, parse_mode="HTML")
-
-# ================= ОБРАБОТКА КНОПОК =================
 @bot.message_handler(func=lambda message: True)
 def handle(message):
     save_user(message.from_user)
-    text = message.text.lower()
+    text = (message.text or "").lower()
     user_id = message.from_user.id
 
     if "карта" in text or "black" in text or "500" in text:
         add_click(user_id, "black")
-        desc = (
-            "💳 <b>Дебетовая карта T-Bank Black</b>\n\n"
-            "• Кэшбэк до 30%\n"
-            "• 500 ₽ в подарок\n"
-            "• Часто бесплатное обслуживание\n"
-            "• Бесплатные переводы\n"
-            "• Доставка карты домой"
-        )
+        desc = "💳 <b>Дебетовая карта T-Bank Black</b>\n\n• Кэшбэк до 30%\n• 500 ₽ в подарок\n• Часто бесплатное обслуживание\n• Доставка карты домой"
         markup = types.InlineKeyboardMarkup()
         markup.add(types.InlineKeyboardButton("🚀 Оформить карту + 500 ₽", url=LINK_BLACK))
         bot.send_message(message.chat.id, desc, reply_markup=markup, parse_mode="HTML")
-
     elif "бизнес" in text:
         add_click(user_id, "business")
-        desc = (
-            "💼 <b>Бизнес-счёт Т-Банка</b>\n\n"
-            "• Открытие онлайн за несколько минут\n"
-            "• Удобное приложение для бизнеса\n"
-            "• Бесплатные переводы и платежи\n"
-            "• Подходит для ИП и ООО"
-        )
+        desc = "💼 <b>Бизнес-счёт Т-Банка</b>\n\n• Открытие онлайн\n• Удобное приложение\n• Для ИП и ООО"
         markup = types.InlineKeyboardMarkup()
         markup.add(types.InlineKeyboardButton("💼 Открыть бизнес-счёт", url=LINK_BUSINESS))
         bot.send_message(message.chat.id, desc, reply_markup=markup, parse_mode="HTML")
-
     elif "инвест" in text:
         add_click(user_id, "invest")
-        desc = (
-            "📈 <b>Счёт для инвестиций</b>\n\n"
-            "• Открытие брокерского счёта онлайн\n"
-            "• Акции, облигации, ETF\n"
-            "• Можно начать с небольшой суммы\n"
-            "• Удобное приложение"
-        )
+        desc = "📈 <b>Счёт для инвестиций</b>\n\n• Акции, облигации, ETF\n• Можно начать с небольшой суммы"
         markup = types.InlineKeyboardMarkup()
-        markup.add(types.InlineKeyboardButton("📈 Открыть инвестиционный счёт", url=LINK_INVEST))
+        markup.add(types.InlineKeyboardButton("📈 Открыть счёт", url=LINK_INVEST))
         bot.send_message(message.chat.id, desc, reply_markup=markup, parse_mode="HTML")
-
     elif "выбери" in text or "продукт сам" in text:
         add_click(user_id, "all")
-        desc = (
-            "🔍 <b>Выбери продукт сам</b>\n\n"
-            "На странице доступны все продукты Т-Банка:\n"
-            "карты, бизнес-счёт, инвестиции и другое."
-        )
+        desc = "🔍 <b>Выбери продукт сам</b>\n\nВсе продукты Т-Банка в одном месте."
         markup = types.InlineKeyboardMarkup()
-        markup.add(types.InlineKeyboardButton("🔍 Выбрать продукт", url=LINK_ALL))
+        markup.add(types.InlineKeyboardButton("🔍 Выбрать", url=LINK_ALL))
         bot.send_message(message.chat.id, desc, reply_markup=markup, parse_mode="HTML")
-
     elif "подробнее" in text:
         add_click(user_id, "info")
-        text_info = (
-            "📋 <b>Кратко о продуктах:</b>\n\n"
-            "💳 Карта Black — кэшбэк + 500 ₽\n"
-            "💼 Бизнес-счёт — для ИП и ООО\n"
-            "📈 Инвестиции — акции и облигации\n"
-            "🔍 Выбери сам — все продукты банка"
-        )
-        bot.send_message(message.chat.id, text_info, parse_mode="HTML")
-
+        bot.send_message(message.chat.id, "📋 Карта Black, бизнес-счёт, инвестиции — всё в меню.", parse_mode="HTML")
     elif "выгодно" in text:
         add_click(user_id, "why")
-        bot.send_message(message.chat.id, "🔥 Всё оформляется онлайн, часто есть бонусы и удобные приложения.")
-
+        bot.send_message(message.chat.id, "🔥 Оформление онлайн, бонусы и удобные приложения.")
     elif "важно" in text:
         add_click(user_id, "important")
-        text_important = (
-            "⚠️ <b>Важно знать</b>\n\n"
-            "Чтобы получить бонус, нужно:\n\n"
-            "1. Оформить продукт <b>по ссылке из бота</b>\n"
-            "2. Выполнить условия акции (обычно покупка или пополнение)\n"
-            "3. Дождаться начисления бонуса\n\n"
-            "Если условия не выполнить — бонус может не прийти."
-        )
-        bot.send_message(message.chat.id, text_important, parse_mode="HTML")
-
+        bot.send_message(message.chat.id, "⚠️ Оформляй по ссылке из бота и выполни условия акции.", parse_mode="HTML")
     else:
         bot.send_message(message.chat.id, "Используй кнопки меню 👇", reply_markup=main_keyboard())
 
-print("✅ Основной бот запущен!")
-bot.infinity_polling()
+def run_api():
+    port = int(os.getenv("PORT", 8080))
+    app.run(host="0.0.0.0", port=port)
+
+if __name__ == "__main__":
+    Thread(target=run_api, daemon=True).start()
+    print("✅ Основной бот + API запущены")
+    bot.infinity_polling()
