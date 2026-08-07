@@ -5,6 +5,7 @@ import sqlite3
 from datetime import datetime
 from threading import Thread
 from flask import Flask, request, jsonify
+from flask_cors import CORS
 
 TOKEN = os.getenv("TOKEN")
 ADMIN_ID = 8896790430
@@ -12,7 +13,9 @@ API_KEY = os.getenv("API_KEY", "LOX22899")
 
 bot = telebot.TeleBot(TOKEN)
 bot.delete_webhook()
+
 app = Flask(__name__)
+CORS(app)
 
 LINK_BLACK = "https://tbank.ru/baf/6cDotN3sm66"
 LINK_BUSINESS = "https://tbank.ru/baf/4fWsjkGRCpn"
@@ -60,6 +63,7 @@ def save_user(user, from_staff_id=None):
     full_name = f"{user.first_name or ''} {user.last_name or ''}".strip()
     username = user.username or "нет"
     now = datetime.now().strftime("%Y-%m-%d %H:%M")
+
     cur.execute("SELECT user_id FROM users WHERE user_id = ?", (user.id,))
     if not cur.fetchone():
         cur.execute("""
@@ -163,7 +167,9 @@ def api_staff():
     """)
     rows = cur.fetchall()
     conn.close()
-    return jsonify({"staff": [{"staff_id": r[0], "total": r[1], "completed": r[2]} for r in rows]})
+    return jsonify({
+        "staff": [{"staff_id": r[0], "total": r[1], "completed": r[2]} for r in rows]
+    })
 
 # ===== BOT =====
 def main_keyboard():
@@ -187,8 +193,10 @@ def start(message):
                 from_staff_id = int(param.replace("emp_", ""))
             except:
                 pass
+
     save_user(message.from_user, from_staff_id)
     add_click(message.from_user.id, "start")
+
     bot.send_message(
         message.chat.id,
         "👋 <b>Добро пожаловать!</b>\n\nЗдесь можно быстро оформить продукты Т-Банка.\n\nВыбирай 👇",
@@ -207,30 +215,37 @@ def handle(message):
         markup = types.InlineKeyboardMarkup()
         markup.add(types.InlineKeyboardButton("🚀 Оформить карту + 500 ₽", url=LINK_BLACK))
         bot.send_message(message.chat.id, "💳 <b>Карта Black</b>\n\n• Кэшбэк до 30%\n• 500 ₽ в подарок\n• Доставка домой", reply_markup=markup, parse_mode="HTML")
+
     elif "бизнес" in text:
         add_click(user_id, "business")
         markup = types.InlineKeyboardMarkup()
         markup.add(types.InlineKeyboardButton("💼 Открыть бизнес-счёт", url=LINK_BUSINESS))
         bot.send_message(message.chat.id, "💼 <b>Бизнес-счёт</b>\n\n• Онлайн\n• Для ИП и ООО", reply_markup=markup, parse_mode="HTML")
+
     elif "инвест" in text:
         add_click(user_id, "invest")
         markup = types.InlineKeyboardMarkup()
         markup.add(types.InlineKeyboardButton("📈 Открыть счёт", url=LINK_INVEST))
         bot.send_message(message.chat.id, "📈 <b>Инвестиции</b>\n\n• Акции, облигации, ETF", reply_markup=markup, parse_mode="HTML")
+
     elif "выбери" in text or "продукт сам" in text:
         add_click(user_id, "all")
         markup = types.InlineKeyboardMarkup()
         markup.add(types.InlineKeyboardButton("🔍 Выбрать", url=LINK_ALL))
         bot.send_message(message.chat.id, "🔍 Все продукты Т-Банка", reply_markup=markup, parse_mode="HTML")
+
     elif "подробнее" in text:
         add_click(user_id, "info")
         bot.send_message(message.chat.id, "📋 Карта Black, бизнес-счёт, инвестиции — в меню.")
+
     elif "выгодно" in text:
         add_click(user_id, "why")
         bot.send_message(message.chat.id, "🔥 Онлайн, бонусы, удобные приложения.")
+
     elif "важно" in text:
         add_click(user_id, "important")
         bot.send_message(message.chat.id, "⚠️ Оформляй по ссылке из бота и выполни условия акции.", parse_mode="HTML")
+
     else:
         bot.send_message(message.chat.id, "Используй кнопки меню 👇", reply_markup=main_keyboard())
 
@@ -240,5 +255,5 @@ def run_api():
 
 if __name__ == "__main__":
     Thread(target=run_api, daemon=True).start()
-    print("✅ Основной бот + Flask API")
+    print("✅ Основной бот + Flask API + CORS")
     bot.infinity_polling()
