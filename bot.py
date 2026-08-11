@@ -64,8 +64,11 @@ def save_user(user, from_staff_id=None):
     username = user.username or "нет"
     now = datetime.now().strftime("%Y-%m-%d %H:%M")
 
-    cur.execute("SELECT user_id FROM users WHERE user_id = ?", (user.id,))
-    if not cur.fetchone():
+    cur.execute("SELECT user_id, from_staff_id FROM users WHERE user_id = ?", (user.id,))
+    row = cur.fetchone()
+
+    if not row:
+        # Новый пользователь
         cur.execute("""
             INSERT INTO users (user_id, username, full_name, first_seen, last_seen, from_staff_id)
             VALUES (?, ?, ?, ?, ?, ?)
@@ -76,9 +79,23 @@ def save_user(user, from_staff_id=None):
                 VALUES (?, ?, ?, 'started', ?)
             """, (from_staff_id, user.id, full_name, now))
     else:
+        # Уже был в боте — обновляем имя/дату
         cur.execute("""
             UPDATE users SET username=?, full_name=?, last_seen=? WHERE user_id=?
         """, (username, full_name, now, user.id))
+
+        # Если раньше метки сотрудника не было, а сейчас пришёл по QR — закрепляем
+        old_staff = row[1]
+        if from_staff_id and not old_staff:
+            cur.execute(
+                "UPDATE users SET from_staff_id=? WHERE user_id=?",
+                (from_staff_id, user.id)
+            )
+            cur.execute("""
+                INSERT INTO staff_referrals (staff_id, client_id, client_name, status, created_at)
+                VALUES (?, ?, ?, 'started', ?)
+            """, (from_staff_id, user.id, full_name, now))
+
     conn.commit()
     conn.close()
 
@@ -214,25 +231,45 @@ def handle(message):
         add_click(user_id, "black")
         markup = types.InlineKeyboardMarkup()
         markup.add(types.InlineKeyboardButton("🚀 Оформить карту + 500 ₽", url=LINK_BLACK))
-        bot.send_message(message.chat.id, "💳 <b>Карта Black</b>\n\n• Кэшбэк до 30%\n• 500 ₽ в подарок\n• Доставка домой", reply_markup=markup, parse_mode="HTML")
+        bot.send_message(
+            message.chat.id,
+            "💳 <b>Карта Black</b>\n\n• Кэшбэк до 30%\n• 500 ₽ в подарок\n• Доставка домой",
+            reply_markup=markup,
+            parse_mode="HTML"
+        )
 
     elif "бизнес" in text:
         add_click(user_id, "business")
         markup = types.InlineKeyboardMarkup()
         markup.add(types.InlineKeyboardButton("💼 Открыть бизнес-счёт", url=LINK_BUSINESS))
-        bot.send_message(message.chat.id, "💼 <b>Бизнес-счёт</b>\n\n• Онлайн\n• Для ИП и ООО", reply_markup=markup, parse_mode="HTML")
+        bot.send_message(
+            message.chat.id,
+            "💼 <b>Бизнес-счёт</b>\n\n• Онлайн\n• Для ИП и ООО",
+            reply_markup=markup,
+            parse_mode="HTML"
+        )
 
     elif "инвест" in text:
         add_click(user_id, "invest")
         markup = types.InlineKeyboardMarkup()
         markup.add(types.InlineKeyboardButton("📈 Открыть счёт", url=LINK_INVEST))
-        bot.send_message(message.chat.id, "📈 <b>Инвестиции</b>\n\n• Акции, облигации, ETF", reply_markup=markup, parse_mode="HTML")
+        bot.send_message(
+            message.chat.id,
+            "📈 <b>Инвестиции</b>\n\n• Акции, облигации, ETF",
+            reply_markup=markup,
+            parse_mode="HTML"
+        )
 
     elif "выбери" in text or "продукт сам" in text:
         add_click(user_id, "all")
         markup = types.InlineKeyboardMarkup()
         markup.add(types.InlineKeyboardButton("🔍 Выбрать", url=LINK_ALL))
-        bot.send_message(message.chat.id, "🔍 Все продукты Т-Банка", reply_markup=markup, parse_mode="HTML")
+        bot.send_message(
+            message.chat.id,
+            "🔍 Все продукты Т-Банка",
+            reply_markup=markup,
+            parse_mode="HTML"
+        )
 
     elif "подробнее" in text:
         add_click(user_id, "info")
@@ -244,7 +281,11 @@ def handle(message):
 
     elif "важно" in text:
         add_click(user_id, "important")
-        bot.send_message(message.chat.id, "⚠️ Оформляй по ссылке из бота и выполни условия акции.", parse_mode="HTML")
+        bot.send_message(
+            message.chat.id,
+            "⚠️ Оформляй по ссылке из бота и выполни условия акции.",
+            parse_mode="HTML"
+        )
 
     else:
         bot.send_message(message.chat.id, "Используй кнопки меню 👇", reply_markup=main_keyboard())
