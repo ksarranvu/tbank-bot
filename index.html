@@ -7,54 +7,201 @@
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
-    :root{
-      --bg:#080808;--card:#121212;--card2:#171717;--line:#262626;
-      --text:#fff;--muted:#8b8b8b;--yellow:#FFDD2D;
-      --yellow-dim:rgba(255,221,45,.12);--ok:#7dffb3;--err:#ff6b6b;
+
+    :root {
+      --bg0: #050505;
+      --bg1: #0a0a0a;
+      --bg2: #111111;
+      --card: linear-gradient(165deg, #1a1a1a 0%, #0d0d0d 55%, #090909 100%);
+      --line: #2a2a2a;
+      --text: #f5f5f5;
+      --muted: #8a8a8a;
+      --accent: #e8e8e8;
+      --accent-dim: rgba(255,255,255,0.08);
+      --ok: #9affc5;
+      --err: #ff7b7b;
     }
-    *{margin:0;padding:0;box-sizing:border-box}
-    body{font-family:Inter,-apple-system,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding-bottom:100px}
-    .container{max-width:440px;margin:0 auto;padding:16px 14px 20px}
-    .header{text-align:center;padding:6px 0 18px}
-    .logo{width:78px;height:78px;margin:0 auto 14px;border-radius:22px;overflow:hidden;box-shadow:0 0 32px rgba(255,221,45,.35)}
-    .logo img{width:100%;height:100%;object-fit:cover;display:block}
-    .header h1{font-size:22px;font-weight:800}
-    .header p{color:var(--muted);font-size:13.5px;margin-top:5px}
-    .badge{display:inline-block;margin-top:12px;background:var(--yellow-dim);color:var(--yellow);font-size:12px;font-weight:600;padding:6px 12px;border-radius:999px}
-    .tab{display:none}.tab.active{display:block;animation:fade .22s ease}
-    @keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
-    .card{background:linear-gradient(165deg,var(--card2),var(--card));border:1px solid var(--line);border-radius:22px;padding:16px;margin-bottom:12px;position:relative;overflow:hidden}
-    .card::before{content:"";position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(255,221,45,.28),transparent)}
-    .card-title{font-size:16px;font-weight:700;margin-bottom:10px;display:flex;align-items:center;gap:8px}
-    .points{list-style:none;margin:0 0 12px}
-    .points li{position:relative;padding-left:18px;color:#b5b5b5;font-size:13.5px;line-height:1.45;margin-bottom:6px}
-    .points li::before{content:"✓";position:absolute;left:0;color:var(--yellow);font-weight:700;font-size:12px}
-    .btn{display:block;width:100%;border:none;border-radius:14px;padding:14px 16px;font-size:14.5px;font-weight:700;text-align:center;text-decoration:none;cursor:pointer;margin-top:10px}
-    .btn-main{background:var(--yellow);color:#111;box-shadow:0 8px 22px rgba(255,221,45,.22)}
-    .btn-dark{background:#1b1b1b;color:#fff;border:1px solid #333}
-    .btn-outline{background:transparent;color:var(--yellow);border:1.5px solid var(--yellow)}
-    .btn-soft{background:#151515;color:#ddd;border:1px solid #2c2c2c}
-    .btn-danger{background:#241010;color:#ff8e8e;border:1px solid #4a2020}
-    .btn-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
-    .grid2{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:10px 0}
-    .grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin:10px 0}
-    .stat{background:#141414;border:1px solid #2a2a2a;border-radius:16px;padding:12px 8px;text-align:center}
-    .stat b{display:block;color:var(--yellow);font-size:18px;font-weight:800;margin-bottom:2px}
-    .stat span{color:var(--muted);font-size:11px}
-    .item{background:#141414;border:1px solid #2a2a2a;border-radius:14px;padding:12px;margin-bottom:8px;font-size:13px}
-    .muted{color:var(--muted);font-size:12px;margin-top:4px;line-height:1.4}
-    .input{width:100%;background:#141414;border:1px solid #333;border-radius:12px;padding:12px 14px;color:#fff;font-size:14px;outline:none;margin-top:8px}
-    .ok{color:var(--ok);font-size:12.5px;margin-top:8px}
-    .err{color:var(--err);font-size:12.5px;margin-top:8px}
-    .pill{display:inline-block;font-size:11px;font-weight:700;padding:3px 8px;border-radius:999px;margin-bottom:10px;background:var(--yellow-dim);color:var(--yellow)}
-    .section-note{color:var(--muted);font-size:12.5px;margin-bottom:8px;line-height:1.4}
-    .warn{background:#1a1608;border:1px solid #3d3200;border-radius:16px;padding:14px;color:#e8d48b;font-size:13px;line-height:1.5}
-    .warn b{color:var(--yellow)}
-    .hidden{display:none!important}
-    .bottom{position:fixed;left:0;right:0;bottom:0;background:#0d0d0d;border-top:1px solid #1f1f1f;display:flex;justify-content:space-around;padding:10px 4px calc(14px + env(safe-area-inset-bottom));z-index:100}
-    .nav{width:68px;background:none;border:none;color:#666;display:flex;flex-direction:column;align-items:center;gap:3px;font-size:11px;font-weight:500;cursor:pointer}
-    .nav.active{color:var(--yellow)}
-    .nav .ico{font-size:18px}
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: Inter, -apple-system, BlinkMacSystemFont, sans-serif;
+      color: var(--text);
+      min-height: 100vh;
+      padding-bottom: 100px;
+      background:
+        radial-gradient(1200px 500px at 50% -10%, #1c1c1c 0%, transparent 55%),
+        radial-gradient(800px 400px at 100% 30%, #151515 0%, transparent 40%),
+        linear-gradient(180deg, #0b0b0b 0%, #050505 40%, #000 100%);
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .container {
+      max-width: 440px;
+      margin: 0 auto;
+      padding: 16px 14px 20px;
+    }
+
+    .header { text-align: center; padding: 8px 0 18px; }
+
+    .logo {
+      width: 78px; height: 78px; margin: 0 auto 14px;
+      border-radius: 22px; overflow: hidden;
+      border: 1px solid #333;
+      background: linear-gradient(145deg, #222, #0a0a0a);
+      box-shadow: 0 10px 30px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.06);
+    }
+    .logo img {
+      width: 100%; height: 100%; object-fit: cover; display: block;
+      filter: grayscale(1) contrast(1.05);
+    }
+
+    .header h1 {
+      font-size: 22px; font-weight: 800; letter-spacing: -0.3px;
+      background: linear-gradient(180deg, #fff 0%, #bdbdbd 100%);
+      -webkit-background-clip: text; background-clip: text; color: transparent;
+    }
+    .header p { color: var(--muted); font-size: 13.5px; margin-top: 5px; }
+
+    .badge {
+      display: inline-block; margin-top: 12px;
+      background: linear-gradient(180deg, #1f1f1f, #121212);
+      border: 1px solid #333;
+      color: #ddd; font-size: 12px; font-weight: 600;
+      padding: 6px 12px; border-radius: 999px;
+    }
+
+    .tab { display: none; }
+    .tab.active { display: block; animation: fade .22s ease; }
+    @keyframes fade {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 22px;
+      padding: 16px;
+      margin-bottom: 12px;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.35);
+    }
+    .card::before {
+      content: "";
+      position: absolute; top: 0; left: 0; right: 0; height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.18), transparent);
+    }
+
+    .card-title {
+      font-size: 16px; font-weight: 700;
+      margin-bottom: 10px;
+      display: flex; align-items: center; gap: 8px;
+      color: #f0f0f0;
+    }
+
+    .points { list-style: none; margin: 0 0 12px; }
+    .points li {
+      position: relative; padding-left: 18px;
+      color: #a8a8a8; font-size: 13.5px; line-height: 1.45; margin-bottom: 6px;
+    }
+    .points li::before {
+      content: "✓"; position: absolute; left: 0;
+      color: #ddd; font-weight: 700; font-size: 12px;
+    }
+
+    .btn {
+      display: block; width: 100%; border: none; border-radius: 14px;
+      padding: 14px 16px; font-size: 14.5px; font-weight: 700;
+      text-align: center; text-decoration: none; cursor: pointer; margin-top: 10px;
+    }
+    .btn-main {
+      background: linear-gradient(180deg, #2a2a2a 0%, #111 100%);
+      color: #fff; border: 1px solid #3a3a3a;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.06);
+    }
+    .btn-dark {
+      background: linear-gradient(180deg, #1a1a1a, #0e0e0e);
+      color: #eee; border: 1px solid #333;
+    }
+    .btn-outline {
+      background: transparent; color: #e6e6e6;
+      border: 1.5px solid #444;
+    }
+    .btn-soft {
+      background: linear-gradient(180deg, #171717, #0c0c0c);
+      color: #ccc; border: 1px solid #2c2c2c;
+    }
+    .btn-danger {
+      background: linear-gradient(180deg, #2a1515, #160b0b);
+      color: #ff9a9a; border: 1px solid #4a2525;
+    }
+    .btn-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px; }
+
+    .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 10px 0; }
+    .grid3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin: 10px 0; }
+
+    .stat {
+      background: linear-gradient(180deg, #171717, #0f0f0f);
+      border: 1px solid #2a2a2a;
+      border-radius: 16px; padding: 12px 8px; text-align: center;
+    }
+    .stat b { display: block; color: #fff; font-size: 18px; font-weight: 800; margin-bottom: 2px; }
+    .stat span { color: var(--muted); font-size: 11px; }
+
+    .item {
+      background: linear-gradient(180deg, #161616, #0f0f0f);
+      border: 1px solid #2a2a2a;
+      border-radius: 14px; padding: 12px; margin-bottom: 8px; font-size: 13px;
+    }
+    .muted { color: var(--muted); font-size: 12px; margin-top: 4px; line-height: 1.4; }
+
+    .input {
+      width: 100%;
+      background: linear-gradient(180deg, #141414, #0c0c0c);
+      border: 1px solid #333; border-radius: 12px;
+      padding: 12px 14px; color: #fff; font-size: 14px; outline: none; margin-top: 8px;
+    }
+    .input:focus { border-color: #555; }
+
+    .ok { color: var(--ok); font-size: 12.5px; margin-top: 8px; }
+    .err { color: var(--err); font-size: 12.5px; margin-top: 8px; }
+
+    .pill {
+      display: inline-block; font-size: 11px; font-weight: 700;
+      padding: 3px 8px; border-radius: 999px; margin-bottom: 10px;
+      background: linear-gradient(180deg, #222, #111);
+      border: 1px solid #333; color: #ddd;
+    }
+    .section-note { color: var(--muted); font-size: 12.5px; margin-bottom: 8px; line-height: 1.4; }
+
+    .warn {
+      background: linear-gradient(180deg, #151515, #0c0c0c);
+      border: 1px solid #333;
+      border-radius: 16px; padding: 14px;
+      color: #cfcfcf; font-size: 13px; line-height: 1.5;
+    }
+    .warn b { color: #fff; }
+
+    .hidden { display: none !important; }
+
+    .bottom {
+      position: fixed; left: 0; right: 0; bottom: 0;
+      background: linear-gradient(180deg, #101010 0%, #080808 100%);
+      border-top: 1px solid #1f1f1f;
+      display: flex; justify-content: space-around;
+      padding: 10px 4px calc(14px + env(safe-area-inset-bottom));
+      z-index: 100;
+      backdrop-filter: blur(10px);
+    }
+    .nav {
+      width: 68px; background: none; border: none; color: #666;
+      display: flex; flex-direction: column; align-items: center; gap: 3px;
+      font-size: 11px; font-weight: 500; cursor: pointer;
+    }
+    .nav.active { color: #f0f0f0; }
+    .nav .ico { font-size: 18px; }
   </style>
 </head>
 <body>
@@ -65,10 +212,9 @@
     </div>
     <h1>Выгодные продукты Т-Банка</h1>
     <p>Оформление онлайн • Бонусы • Быстро</p>
-    <div class="badge">🔥 Актуальные предложения</div>
+    <div class="badge">Актуальные предложения</div>
   </div>
 
-  <!-- PRODUCTS -->
   <div id="tab-products" class="tab active">
     <div class="card">
       <div class="card-title">💳 Карта Black + 500 ₽</div>
@@ -80,6 +226,7 @@
       </ul>
       <a class="btn btn-main" href="https://tbank.ru/baf/6cDotN3sm66" target="_blank">Оформить карту + 500 ₽</a>
     </div>
+
     <div class="card">
       <div class="card-title">💼 Бизнес-счёт</div>
       <ul class="points">
@@ -90,6 +237,7 @@
       </ul>
       <a class="btn btn-main" href="https://tbank.ru/baf/4fWsjkGRCpn" target="_blank">Открыть бизнес-счёт</a>
     </div>
+
     <div class="card">
       <div class="card-title">📈 Счёт для инвестиций</div>
       <ul class="points">
@@ -100,6 +248,7 @@
       </ul>
       <a class="btn btn-main" href="https://tbank.ru/baf/4Nha2vM22nm" target="_blank">Открыть инвестиционный счёт</a>
     </div>
+
     <div class="card">
       <div class="card-title">🔍 Выбери продукт сам</div>
       <ul class="points">
@@ -110,7 +259,6 @@
     </div>
   </div>
 
-  <!-- BENEFITS -->
   <div id="tab-benefits" class="tab">
     <div class="card">
       <div class="card-title">✨ Почему это выгодно</div>
@@ -135,7 +283,6 @@
     </div>
   </div>
 
-  <!-- IMPORTANT -->
   <div id="tab-important" class="tab">
     <div class="card">
       <div class="card-title">⚠️ Важно знать</div>
@@ -149,7 +296,6 @@
     <div class="warn"><b>Важно:</b> если оформить не по ссылке из бота или не выполнить условия — бонус может не начислиться.</div>
   </div>
 
-  <!-- ADMIN: только для OWNER_ID -->
   <div id="tab-admin" class="tab hidden" data-owner-only="1">
     <div class="pill">OWNER ACCESS</div>
 
@@ -220,22 +366,21 @@
 (function () {
   const MAIN_API = "https://tbank-bot-production.up.railway.app";
   const API_KEY = "LOX22899";
-  const OWNER_ID = 8896790430; // только этот ID видит админку
+  const OWNER_ID = 8896790430;
 
   const tg = window.Telegram && window.Telegram.WebApp ? window.Telegram.WebApp : null;
   if (tg) {
     tg.ready();
     tg.expand();
     try {
-      tg.setHeaderColor("#080808");
-      tg.setBackgroundColor("#080808");
+      tg.setHeaderColor("#050505");
+      tg.setBackgroundColor("#050505");
     } catch (e) {}
   }
 
   const user = tg && tg.initDataUnsafe && tg.initDataUnsafe.user ? tg.initDataUnsafe.user : null;
   const isOwner = !!(user && Number(user.id) === Number(OWNER_ID));
 
-  // Админка только владельцу
   if (isOwner) {
     document.getElementById("adminNav").classList.remove("hidden");
     document.getElementById("tab-admin").classList.remove("hidden");
@@ -245,23 +390,16 @@
   }
 
   function showTab(name) {
-    // чужой аккаунт не пускаем в admin
     if (name === "admin" && !isOwner) return;
-
     document.querySelectorAll(".tab").forEach(function (t) { t.classList.remove("active"); });
     document.querySelectorAll(".nav").forEach(function (n) { n.classList.remove("active"); });
-
     var tab = document.getElementById("tab-" + name);
     if (tab) tab.classList.add("active");
-
     document.querySelectorAll(".nav").forEach(function (n) {
       if (n.getAttribute("data-tab") === name) n.classList.add("active");
     });
-
     if (name === "admin" && isOwner) {
-      loadOverview();
-      loadUsers();
-      loadStaff();
+      loadOverview(); loadUsers(); loadStaff();
     }
   }
 
